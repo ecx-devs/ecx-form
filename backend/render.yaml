@@ -1,0 +1,27 @@
+# Render Blueprint for ECX Forms Backend
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: ecx-forms-api
+    env: node
+    region: frankfurt # or oregon, singapore, ohio
+    plan: free # or starter, standard, pro
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: FRONTEND_URL
+        sync: false # Set manually in dashboard
+      - key: SUPABASE_URL
+        sync: false # Set manually in dashboard
+      - key: SUPABASE_ANON_KEY
+        sync: false # Set manually in dashboard
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false # Set manually in dashboard
+    autoDeploy: true
+
