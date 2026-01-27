@@ -121,9 +121,9 @@ export default function LoginPage() {
         </Card>
 
         {/* Footer */}
-        <p className="mt-6 text-center text-body-sm text-gray-500">
+        {/* <p className="mt-6 text-center text-body-sm text-gray-500">
           ECX Forms is for authorized ECX team members only.
-        </p>
+        </p> */}
       </motion.div>
     </div>
   );

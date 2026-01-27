@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   },
   description: 'Create and share beautiful forms with ECX Forms - Engineering Career Expo',
   keywords: ['forms', 'surveys', 'ECX', 'Engineering Career Expo', 'UNILAG'],
-  authors: [{ name: 'ECX Team' }],
+  authors: [{ name: 'Teslim Sadiq' }],
   openGraph: {
     title: 'ECX Forms',
     description: 'Create and share beautiful forms with ECX Forms',
