@@ -27,8 +27,17 @@ const dmMono = DM_Mono({
   display: 'swap',
 });
 
+// Get the app URL with proper fallback
+const getMetadataBase = () => {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (appUrl && appUrl.startsWith('http')) {
+    return new URL(appUrl);
+  }
+  return new URL('https://forms.ecx.com.ng');
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://forms.ecx.com.ng'),
+  metadataBase: getMetadataBase(),
   title: {
     default: 'ECX Forms',
     template: '%s | ECX Forms',
