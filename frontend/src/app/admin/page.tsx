@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { useFormList } from '@/entities/form';
-import { FormCard, EmptyFormList } from '@/widgets/form-list';
-import { Navbar } from '@/widgets/layout';
-import { Button, IconPlus, SkeletonFormGrid } from '@/shared/ui';
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useFormList } from "@/entities/form";
+import { FormCard, EmptyFormList } from "@/widgets/form-list";
+import { Navbar } from "@/widgets/layout";
+import { Button, IconPlus, SkeletonFormGrid } from "@/shared/ui";
 
 export default function AdminDashboardPage() {
   const { data: forms, isLoading, error } = useFormList();
@@ -23,7 +23,9 @@ export default function AdminDashboardPage() {
         >
           {/* Page Header */}
           <div className="mb-8">
-            <h1 className="text-heading-1 font-varela text-ecx-black">My Forms</h1>
+            <h1 className="text-heading-1 font-varela text-ecx-black">
+              My Forms
+            </h1>
             <p className="text-body text-gray-600 mt-2">
               Create and manage your forms. View responses and export data.
             </p>
@@ -45,7 +47,10 @@ export default function AdminDashboardPage() {
           {error && (
             <div className="text-center py-20">
               <p className="text-ecx-red mb-4">Failed to load forms</p>
-              <Button variant="outline" onClick={() => window.location.reload()}>
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+              >
                 Try again
               </Button>
             </div>

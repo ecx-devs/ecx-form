@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { cn } from '../../lib/cn';
+import Link from "next/link";
+import Image from "next/image";
+import { cn } from "../../lib/cn";
 
 interface LogoProps {
-  variant?: 'light' | 'dark' | 'colored';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: "light" | "dark" | "colored";
+  size?: "sm" | "md" | "lg";
   showText?: boolean;
   className?: string;
   href?: string;
@@ -19,24 +19,24 @@ const sizeConfig = {
 };
 
 export function Logo({
-  variant = 'colored',
-  size = 'md',
+  variant = "colored",
+  size = "md",
   showText = true,
   className,
-  href = '/',
+  href = "/",
 }: LogoProps) {
   const config = sizeConfig[size];
 
   const LogoContent = () => (
-    <div className={cn('flex items-center', className)}>
+    <div className={cn("flex items-center", className)}>
       <Image
         src="/ecx-forms-logo.png"
         alt="ECX Forms"
         width={config.width}
         height={config.height}
         className={cn(
-          'object-contain',
-          variant === 'dark' && 'brightness-0 invert'
+          "object-contain",
+          variant === "dark" && "brightness-0 invert",
         )}
         priority
       />
@@ -53,4 +53,3 @@ export function Logo({
 
   return <LogoContent />;
 }
-
