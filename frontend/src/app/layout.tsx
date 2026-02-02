@@ -45,6 +45,16 @@ export const metadata: Metadata = {
   description: 'Create and share beautiful forms with ECX Forms - Engineering Career Expo',
   keywords: ['forms', 'surveys', 'ECX', 'Engineering Career Expo', 'UNILAG'],
   authors: [{ name: 'Teslim Sadiq' }],
+  icons: {
+    icon: [
+      { url: '/logos/4.png', sizes: '32x32', type: 'image/png' },
+      { url: '/logos/4.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/logos/4.png', sizes: '180x180', type: 'image/png' },
+    ],
+    shortcut: '/logos/4.png',
+  },
   openGraph: {
     title: 'ECX Forms',
     description: 'Create and share beautiful forms with ECX Forms',

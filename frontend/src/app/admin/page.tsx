@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useFormList } from '@/entities/form';
 import { FormCard, EmptyFormList } from '@/widgets/form-list';
 import { Navbar } from '@/widgets/layout';
-import { Button, IconPlus, Spinner } from '@/shared/ui';
+import { Button, IconPlus, SkeletonFormGrid } from '@/shared/ui';
 
 export default function AdminDashboardPage() {
   const { data: forms, isLoading, error } = useFormList();
@@ -29,10 +29,15 @@ export default function AdminDashboardPage() {
             </p>
           </div>
 
-          {/* Loading State */}
+          {/* Loading State - Skeleton */}
           {isLoading && (
-            <div className="flex items-center justify-center py-20">
-              <Spinner size="lg" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {/* Create New Card Placeholder */}
+              <div className="h-full min-h-[240px] border-2 border-dashed border-gray-200 rounded-card flex flex-col items-center justify-center gap-4 bg-gray-50">
+                <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+              </div>
+              <SkeletonFormGrid count={3} className="contents" />
             </div>
           )}
 

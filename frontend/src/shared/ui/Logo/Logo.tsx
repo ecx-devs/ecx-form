@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { cn } from '../../lib/cn';
 
 interface LogoProps {
@@ -12,9 +13,9 @@ interface LogoProps {
 }
 
 const sizeConfig = {
-  sm: { height: 24, textClass: 'text-sm' },
-  md: { height: 32, textClass: 'text-base' },
-  lg: { height: 40, textClass: 'text-lg' },
+  sm: { height: 28, width: 120 },
+  md: { height: 36, width: 155 },
+  lg: { height: 48, width: 205 },
 };
 
 export function Logo({
@@ -27,60 +28,18 @@ export function Logo({
   const config = sizeConfig[size];
 
   const LogoContent = () => (
-    <div className={cn('flex items-center gap-2', className)}>
-      {/* ECX Letters */}
-      <svg
+    <div className={cn('flex items-center', className)}>
+      <Image
+        src="/ecx-forms-logo.png"
+        alt="ECX Forms"
+        width={config.width}
         height={config.height}
-        viewBox="0 0 100 32"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* E */}
-        <text
-          x="0"
-          y="26"
-          fontFamily="Arial, sans-serif"
-          fontSize="28"
-          fontWeight="bold"
-          fill={variant === 'dark' ? '#ffffff' : '#2699e3'}
-        >
-          E
-        </text>
-        {/* C */}
-        <text
-          x="22"
-          y="26"
-          fontFamily="Arial, sans-serif"
-          fontSize="28"
-          fontWeight="bold"
-          fill={variant === 'dark' ? '#ffffff' : '#fab12d'}
-        >
-          C
-        </text>
-        {/* X */}
-        <text
-          x="48"
-          y="26"
-          fontFamily="Arial, sans-serif"
-          fontSize="28"
-          fontWeight="bold"
-          fill={variant === 'dark' ? '#ffffff' : '#f2443f'}
-        >
-          X
-        </text>
-      </svg>
-
-      {showText && (
-        <span
-          className={cn(
-            'font-inter font-medium',
-            config.textClass,
-            variant === 'dark' ? 'text-white' : 'text-ecx-gray'
-          )}
-        >
-          Forms
-        </span>
-      )}
+        className={cn(
+          'object-contain',
+          variant === 'dark' && 'brightness-0 invert'
+        )}
+        priority
+      />
     </div>
   );
 

@@ -133,3 +133,40 @@ export function SkeletonResponseSummary({ className }: { className?: string }) {
   );
 }
 
+export function SkeletonFormCard({ className }: { className?: string }) {
+  return (
+    <div className={cn('bg-white rounded-card border border-gray-200 p-5 space-y-4 min-h-[240px]', className)}>
+      {/* Color strip at top */}
+      <Skeleton variant="rounded" height={8} className="w-16" />
+      
+      {/* Title */}
+      <Skeleton variant="text" height={24} className="w-3/4" />
+      
+      {/* Description */}
+      <div className="space-y-2">
+        <Skeleton variant="text" height={14} className="w-full" />
+        <Skeleton variant="text" height={14} className="w-2/3" />
+      </div>
+      
+      {/* Stats row */}
+      <div className="flex items-center gap-4 pt-4">
+        <Skeleton variant="rounded" height={20} className="w-20" />
+        <Skeleton variant="rounded" height={20} className="w-24" />
+      </div>
+      
+      {/* Date */}
+      <Skeleton variant="text" height={12} className="w-32 mt-auto" />
+    </div>
+  );
+}
+
+export function SkeletonFormGrid({ count = 4, className }: { count?: number; className?: string }) {
+  return (
+    <div className={cn('grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6', className)}>
+      {Array.from({ length: count }).map((_, i) => (
+        <SkeletonFormCard key={i} />
+      ))}
+    </div>
+  );
+}
+

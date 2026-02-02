@@ -5,5 +5,7 @@ export {
   SkeletonTable, 
   SkeletonForm,
   SkeletonResponseSummary,
+  SkeletonFormCard,
+  SkeletonFormGrid,
 } from './Skeleton';
 
