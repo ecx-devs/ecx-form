@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { PublicForm } from '@/entities/form';
-import { Question } from '@/entities/question';
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { PublicForm } from "@/entities/form";
+import { Question } from "@/entities/question";
 import {
   FormAnswers,
   formAnswersToSubmission,
   useSubmitForm,
-} from '@/entities/submission';
+} from "@/entities/submission";
 import {
   Card,
   Button,
@@ -19,7 +19,7 @@ import {
   Select,
   IconSuccess,
   Spinner,
-} from '@/shared/ui';
+} from "@/shared/ui";
 import {
   cn,
   validateField,
@@ -27,7 +27,7 @@ import {
   getFormDraft,
   getUserIdentifier,
   hasSubmittedForm,
-} from '@/shared/lib';
+} from "@/shared/lib";
 
 interface PublicFormRendererProps {
   form: PublicForm;
@@ -49,8 +49,9 @@ export function PublicFormRenderer({ form }: PublicFormRendererProps) {
     if (form.settings.limitToOneResponse && hasSubmittedForm(form.id)) {
       setIsSubmitted(true);
       setSubmissionResult({
-        submissionId: '',
-        confirmationMessage: 'You have already submitted a response to this form.',
+        submissionId: "",
+        confirmationMessage:
+          "You have already submitted a response to this form.",
       });
     }
   }, [form.id, form.settings.limitToOneResponse]);
@@ -70,14 +71,17 @@ export function PublicFormRenderer({ form }: PublicFormRendererProps) {
     }
   }, [answers, form.id]);
 
-  const updateAnswer = useCallback((questionId: string, value: string | string[] | null) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
-    // Clear error when user starts typing
-    setErrors((prev) => {
-      const { [questionId]: _, ...rest } = prev;
-      return rest;
-    });
-  }, []);
+  const updateAnswer = useCallback(
+    (questionId: string, value: string | string[] | null) => {
+      setAnswers((prev) => ({ ...prev, [questionId]: value }));
+      // Clear error when user starts typing
+      setErrors((prev) => {
+        const { [questionId]: _, ...rest } = prev;
+        return rest;
+      });
+    },
+    [],
+  );
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -87,8 +91,8 @@ export function PublicFormRenderer({ form }: PublicFormRendererProps) {
       const validation = validateField(
         value,
         question.required,
-        question.validation?.rule || 'none',
-        question.validation?.errorMessage
+        question.validation?.rule || "none",
+        question.validation?.errorMessage,
       );
 
       if (!validation.isValid && validation.error) {
@@ -118,8 +122,10 @@ export function PublicFormRenderer({ form }: PublicFormRendererProps) {
   const progress = form.settings.showProgressBar
     ? (Object.keys(answers).filter((k) => {
         const v = answers[k];
-        return v !== null && v !== '' && (!Array.isArray(v) || v.length > 0);
-      }).length / form.questions.length) * 100
+        return v !== null && v !== "" && (!Array.isArray(v) || v.length > 0);
+      }).length /
+        form.questions.length) *
+      100
     : 0;
 
   if (isSubmitted && submissionResult) {
@@ -215,7 +221,7 @@ function QuestionField({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <Card className={cn(error && 'ring-2 ring-ecx-red')}>
+      <Card className={cn(error && "ring-2 ring-ecx-red")}>
         <div className="mb-4">
           <label className="text-body font-medium text-ecx-black">
             {question.title}
@@ -229,9 +235,9 @@ function QuestionField({
         </div>
 
         {/* Short Text */}
-        {question.type === 'short_text' && (
+        {question.type === "short_text" && (
           <Input
-            value={(value as string) || ''}
+            value={(value as string) || ""}
             onChange={(e) => onChange(e.target.value)}
             placeholder="Your answer"
             error={error}
@@ -239,9 +245,9 @@ function QuestionField({
         )}
 
         {/* Long Text */}
-        {question.type === 'long_text' && (
+        {question.type === "long_text" && (
           <TextArea
-            value={(value as string) || ''}
+            value={(value as string) || ""}
             onChange={(e) => onChange(e.target.value)}
             placeholder="Your answer"
             error={error}
@@ -249,10 +255,10 @@ function QuestionField({
         )}
 
         {/* Number */}
-        {question.type === 'number' && (
+        {question.type === "number" && (
           <Input
             type="number"
-            value={(value as string) || ''}
+            value={(value as string) || ""}
             onChange={(e) => onChange(e.target.value)}
             placeholder="Your answer"
             error={error}
@@ -260,10 +266,10 @@ function QuestionField({
         )}
 
         {/* Multiple Choice */}
-        {question.type === 'multiple_choice' && question.options && (
+        {question.type === "multiple_choice" && question.options && (
           <RadioGroup
             name={question.id}
-            value={(value as string) || ''}
+            value={(value as string) || ""}
             onChange={(v) => onChange(v)}
             options={question.options.map((opt) => ({
               value: opt.value,
@@ -274,7 +280,7 @@ function QuestionField({
         )}
 
         {/* Checkboxes */}
-        {question.type === 'checkbox' && question.options && (
+        {question.type === "checkbox" && question.options && (
           <div className="space-y-2">
             {question.options.map((option) => {
               const selected = Array.isArray(value) ? value : [];
@@ -295,16 +301,14 @@ function QuestionField({
                 />
               );
             })}
-            {error && (
-              <p className="text-body-sm text-ecx-red mt-1">{error}</p>
-            )}
+            {error && <p className="text-body-sm text-ecx-red mt-1">{error}</p>}
           </div>
         )}
 
         {/* Dropdown */}
-        {question.type === 'dropdown' && question.options && (
+        {question.type === "dropdown" && question.options && (
           <Select
-            value={(value as string) || ''}
+            value={(value as string) || ""}
             onChange={(v) => onChange(v)}
             options={question.options.map((opt) => ({
               value: opt.value,
@@ -316,13 +320,13 @@ function QuestionField({
         )}
 
         {/* File Upload */}
-        {question.type === 'file_upload' && (
+        {question.type === "file_upload" && (
           <div
             className={cn(
-              'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
+              "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
               error
-                ? 'border-ecx-red bg-red-50'
-                : 'border-gray-300 hover:border-ecx-blue hover:bg-ecx-blue-50'
+                ? "border-ecx-red bg-red-50"
+                : "border-gray-300 hover:border-ecx-blue hover:bg-ecx-blue-50",
             )}
           >
             <input
@@ -337,20 +341,15 @@ function QuestionField({
                 }
               }}
             />
-            <label
-              htmlFor={`file-${question.id}`}
-              className="cursor-pointer"
-            >
+            <label htmlFor={`file-${question.id}`} className="cursor-pointer">
               <p className="text-gray-600">
-                {value ? (value as string) : 'Click to upload or drag and drop'}
+                {value ? (value as string) : "Click to upload or drag and drop"}
               </p>
               <p className="text-body-sm text-gray-400 mt-1">
                 Max file size: 2MB
               </p>
             </label>
-            {error && (
-              <p className="text-body-sm text-ecx-red mt-2">{error}</p>
-            )}
+            {error && <p className="text-body-sm text-ecx-red mt-2">{error}</p>}
           </div>
         )}
       </Card>
@@ -377,7 +376,7 @@ function SubmissionSuccess({
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring' }}
+            transition={{ delay: 0.2, type: "spring" }}
             className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center"
           >
             <IconSuccess size={32} className="text-green-500" />
@@ -388,15 +387,12 @@ function SubmissionSuccess({
           <p className="text-body text-gray-600 mb-4">{confirmationMessage}</p>
           {submissionId && (
             <p className="text-body-sm text-gray-500">
-              Submission ID:{' '}
+              Submission ID:{" "}
               <span className="font-mono text-ecx-blue">{submissionId}</span>
             </p>
           )}
           <div className="mt-6">
-            <Button
-              variant="outline"
-              onClick={() => window.location.reload()}
-            >
+            <Button variant="outline" onClick={() => window.location.reload()}>
               Submit another response
             </Button>
           </div>
@@ -405,4 +401,3 @@ function SubmissionSuccess({
     </div>
   );
 }
-

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { submissionApi } from './submissionApi';
-import { SubmitFormInput } from '../model/types';
-import { markFormAsSubmitted, clearFormDraft } from '@/shared/lib/storage';
-import toast from 'react-hot-toast';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { submissionApi } from "./submissionApi";
+import { SubmitFormInput } from "../model/types";
+import { markFormAsSubmitted, clearFormDraft } from "@/shared/lib/storage";
+import toast from "react-hot-toast";
 
 export const submissionKeys = {
-  all: ['submissions'] as const,
-  list: (formId: string) => [...submissionKeys.all, 'list', formId] as const,
+  all: ["submissions"] as const,
+  list: (formId: string) => [...submissionKeys.all, "list", formId] as const,
 };
 
 // Get submissions for a form
@@ -36,7 +36,7 @@ export function useSubmitForm(formId: string) {
       return response;
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to submit form');
+      toast.error(error.message || "Failed to submit form");
     },
   });
 }
@@ -49,22 +49,22 @@ export function useExportSubmissions() {
       format,
     }: {
       formId: string;
-      format: 'xlsx' | 'json';
+      format: "xlsx" | "json";
     }) => submissionApi.export(formId, format),
     onSuccess: (blob, { format }) => {
       // Create download link
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `responses.${format}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      toast.success('Export downloaded successfully');
+      toast.success("Export downloaded successfully");
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to export submissions');
+      toast.error(error.message || "Failed to export submissions");
     },
   });
 }
@@ -84,7 +84,7 @@ export function useFileUpload(formId: string) {
         formId,
         file.name,
         file.type,
-        file.size
+        file.size,
       );
 
       // Upload file
@@ -93,8 +93,7 @@ export function useFileUpload(formId: string) {
       return { path };
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to upload file');
+      toast.error(error.message || "Failed to upload file");
     },
   });
 }
-

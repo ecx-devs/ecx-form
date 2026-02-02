@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Submission } from '@/entities/submission';
-import { Question } from '@/entities/question';
-import { Card, Button, IconDownload, Spinner } from '@/shared/ui';
-import { cn } from '@/shared/lib';
+import { useMemo } from "react";
+import { motion } from "framer-motion";
+import { Submission } from "@/entities/submission";
+import { Question } from "@/entities/question";
+import { Card, Button, IconDownload, Spinner } from "@/shared/ui";
+import { cn } from "@/shared/lib";
 
 interface ResponsesTableProps {
   submissions: Submission[];
   questions: Question[];
   isLoading?: boolean;
-  onExport?: (format: 'xlsx' | 'json') => void;
+  onExport?: (format: "xlsx" | "json") => void;
   isExporting?: boolean;
 }
 
@@ -24,8 +24,8 @@ export function ResponsesTable({
 }: ResponsesTableProps) {
   const columns = useMemo(() => {
     return [
-      { id: 'id', label: 'Submission ID', width: 160 },
-      { id: 'submittedAt', label: 'Submitted', width: 160 },
+      { id: "id", label: "Submission ID", width: 160 },
+      { id: "submittedAt", label: "Submitted", width: 160 },
       ...questions.map((q) => ({
         id: q.id,
         label: q.title,
@@ -43,9 +43,9 @@ export function ResponsesTable({
 
       submission.answers.forEach((answer) => {
         if (Array.isArray(answer.value)) {
-          row[answer.questionId] = answer.value.join(', ');
+          row[answer.questionId] = answer.value.join(", ");
         } else {
-          row[answer.questionId] = answer.value || '-';
+          row[answer.questionId] = answer.value || "-";
         }
       });
 
@@ -78,14 +78,14 @@ export function ResponsesTable({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-heading-4 font-varela text-ecx-black">
-            {submissions.length} response{submissions.length !== 1 ? 's' : ''}
+            {submissions.length} response{submissions.length !== 1 ? "s" : ""}
           </h3>
         </div>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onExport?.('xlsx')}
+            onClick={() => onExport?.("xlsx")}
             isLoading={isExporting}
             leftIcon={<IconDownload size={16} />}
           >
@@ -94,7 +94,7 @@ export function ResponsesTable({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onExport?.('json')}
+            onClick={() => onExport?.("json")}
             isLoading={isExporting}
           >
             JSON
@@ -112,8 +112,8 @@ export function ResponsesTable({
                   <th
                     key={col.id}
                     className={cn(
-                      'px-4 py-3 text-left text-body-sm font-medium text-gray-600',
-                      index === 0 && 'sticky left-0 bg-gray-50 z-10'
+                      "px-4 py-3 text-left text-body-sm font-medium text-gray-600",
+                      index === 0 && "sticky left-0 bg-gray-50 z-10",
                     )}
                     style={{ minWidth: col.width }}
                   >
@@ -135,13 +135,12 @@ export function ResponsesTable({
                     <td
                       key={col.id}
                       className={cn(
-                        'px-4 py-3 text-body-sm text-ecx-gray',
-                        colIndex === 0 && 'sticky left-0 bg-white z-10 font-mono text-ecx-blue'
+                        "px-4 py-3 text-body-sm text-ecx-gray",
+                        colIndex === 0 &&
+                          "sticky left-0 bg-white z-10 font-mono text-ecx-blue",
                       )}
                     >
-                      <span className="line-clamp-2">
-                        {row[col.id] || '-'}
-                      </span>
+                      <span className="line-clamp-2">{row[col.id] || "-"}</span>
                     </td>
                   ))}
                 </motion.tr>
@@ -153,4 +152,3 @@ export function ResponsesTable({
     </div>
   );
 }
-
