@@ -49,7 +49,7 @@ export function useExportSubmissions() {
       format,
     }: {
       formId: string;
-      format: 'csv' | 'json';
+      format: 'xlsx' | 'json';
     }) => submissionApi.export(formId, format),
     onSuccess: (blob, { format }) => {
       // Create download link

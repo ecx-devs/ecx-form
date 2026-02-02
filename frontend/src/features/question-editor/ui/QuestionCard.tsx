@@ -48,7 +48,37 @@ export function QuestionCard({ question, isActive, onSelect }: QuestionCardProps
   const config = QUESTION_TYPE_CONFIG[question.type];
 
   const handleTypeChange = (newType: string) => {
-    updateQuestion(question.id, { type: newType as QuestionType });
+    const newConfig = QUESTION_TYPE_CONFIG[newType as QuestionType];
+    const updates: Partial<Question> = { type: newType as QuestionType };
+
+    // Handle options based on question type
+    if (newConfig.hasOptions && !question.options) {
+      // Switching to a choice-based type - add default option
+      updates.options = [{
+        id: crypto.randomUUID(),
+        value: 'Option 1',
+        order: 0,
+      }];
+    } else if (!newConfig.hasOptions && question.options) {
+      // Switching away from a choice-based type - remove options
+      updates.options = undefined;
+    }
+
+    // Handle file config
+    if (newConfig.hasFileConfig && !question.fileConfig) {
+      updates.fileConfig = { maxSizeMB: 2, allowedTypes: ['image/*', 'application/pdf', '.doc', '.docx'] };
+    } else if (!newConfig.hasFileConfig && question.fileConfig) {
+      updates.fileConfig = undefined;
+    }
+
+    // Handle validation for number type
+    if (newType === 'number' && !question.validation) {
+      updates.validation = { rule: 'number', errorMessage: 'Please enter a valid number' };
+    } else if (newType !== 'number' && question.validation?.rule === 'number') {
+      updates.validation = undefined;
+    }
+
+    updateQuestion(question.id, updates);
   };
 
   const handleTitleChange = (title: string) => {
@@ -131,8 +161,8 @@ export function QuestionCard({ question, isActive, onSelect }: QuestionCardProps
 
         <div className="p-6 pl-8">
           {/* Question Type & Title Row */}
-          <div className="flex gap-4 mb-4">
-            <div className="flex-1">
+          <div className="flex flex-col sm:flex-row gap-4 mb-4">
+            <div className="flex-1 order-2 sm:order-1">
               <Input
                 value={question.title}
                 onChange={(e) => handleTitleChange(e.target.value)}
@@ -140,7 +170,7 @@ export function QuestionCard({ question, isActive, onSelect }: QuestionCardProps
                 className="text-lg font-medium border-b-2 border-transparent hover:border-gray-200 focus:border-ecx-blue rounded-none px-0"
               />
             </div>
-            <div className="w-48">
+            <div className="w-full sm:w-48 order-1 sm:order-2">
               <Select
                 value={question.type}
                 onChange={handleTypeChange}

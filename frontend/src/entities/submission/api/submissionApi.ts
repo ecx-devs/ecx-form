@@ -30,7 +30,7 @@ export const submissionApi = {
   },
 
   // Export submissions
-  async export(formId: string, format: 'csv' | 'json' = 'csv'): Promise<Blob> {
+  async export(formId: string, format: 'xlsx' | 'json' = 'xlsx'): Promise<Blob> {
     return apiClient.download(formEndpoints.export(formId, format));
   },
 

@@ -2,11 +2,12 @@ import { IFormRepository } from '../../../domain/repositories/IFormRepository';
 import { ISubmissionRepository } from '../../../domain/repositories/ISubmissionRepository';
 import { FormId } from '../../../domain/value-objects/FormId';
 import { NotFoundError } from '../form/GetFormUseCase';
+import * as XLSX from 'xlsx';
 
-export type ExportFormat = 'csv' | 'json';
+export type ExportFormat = 'xlsx' | 'json';
 
 export interface ExportResult {
-  data: string;
+  data: string | Buffer;
   filename: string;
   contentType: string;
 }
@@ -17,7 +18,7 @@ export class ExportSubmissionsUseCase {
     private readonly submissionRepository: ISubmissionRepository
   ) {}
 
-  async execute(formId: string, format: ExportFormat = 'csv'): Promise<ExportResult> {
+  async execute(formId: string, format: ExportFormat = 'xlsx'): Promise<ExportResult> {
     const id = FormId.fromString(formId);
     const form = await this.formRepository.findById(id);
 
@@ -32,10 +33,10 @@ export class ExportSubmissionsUseCase {
       return this.exportAsJson(formId, form.title, questions, submissions);
     }
 
-    return this.exportAsCsv(formId, form.title, questions, submissions);
+    return this.exportAsXlsx(formId, form.title, questions, submissions);
   }
 
-  private exportAsCsv(
+  private exportAsXlsx(
     formId: string,
     formTitle: string,
     questions: typeof Form.prototype.questions,
@@ -43,12 +44,11 @@ export class ExportSubmissionsUseCase {
   ): ExportResult {
     // Create header row
     const headers = ['Submission ID', 'Submitted At', ...questions.map(q => q.title)];
-    const headerRow = this.escapeCSVRow(headers);
 
     // Create data rows
     const dataRows = submissions.map(sub => {
       const json = sub.toJSON();
-      const row = [
+      return [
         json.id,
         new Date(json.submittedAt).toISOString(),
         ...questions.map(q => {
@@ -60,16 +60,33 @@ export class ExportSubmissionsUseCase {
           return answer.value || '';
         }),
       ];
-      return this.escapeCSVRow(row);
     });
 
-    const csv = [headerRow, ...dataRows].join('\n');
+    // Create workbook and worksheet
+    const worksheetData = [headers, ...dataRows];
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    
+    // Auto-size columns
+    const colWidths = headers.map((header, i) => {
+      const maxLength = Math.max(
+        header.length,
+        ...dataRows.map(row => String(row[i] || '').length)
+      );
+      return { wch: Math.min(maxLength + 2, 50) };
+    });
+    worksheet['!cols'] = colWidths;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Responses');
+
+    // Generate buffer
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
     const safeTitle = formTitle.replace(/[^a-zA-Z0-9]/g, '_');
 
     return {
-      data: csv,
-      filename: `${formId}_${safeTitle}_responses.csv`,
-      contentType: 'text/csv',
+      data: buffer,
+      filename: `${formId}_${safeTitle}_responses.xlsx`,
+      contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     };
   }
 
@@ -112,18 +129,6 @@ export class ExportSubmissionsUseCase {
       filename: `${formId}_${safeTitle}_responses.json`,
       contentType: 'application/json',
     };
-  }
-
-  private escapeCSVRow(row: string[]): string {
-    return row
-      .map(cell => {
-        const str = String(cell);
-        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-          return `"${str.replace(/"/g, '""')}"`;
-        }
-        return str;
-      })
-      .join(',');
   }
 }
 

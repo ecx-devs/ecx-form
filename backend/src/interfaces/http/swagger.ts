@@ -331,7 +331,7 @@ No rate limits are currently enforced.
       get: {
         tags: ['Submissions'],
         summary: 'Export submissions',
-        description: 'Exports all submissions as CSV or JSON file.',
+        description: 'Exports all submissions as Excel (XLSX) or JSON file.',
         operationId: 'exportSubmissions',
         parameters: [
           {
@@ -343,8 +343,8 @@ No rate limits are currently enforced.
             description: 'Export format',
             schema: {
               type: 'string',
-              enum: ['csv', 'json'],
-              default: 'csv',
+              enum: ['xlsx', 'json'],
+              default: 'xlsx',
             },
           },
         ],
@@ -352,9 +352,10 @@ No rate limits are currently enforced.
           '200': {
             description: 'Export file',
             content: {
-              'text/csv': {
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
                 schema: {
                   type: 'string',
+                  format: 'binary',
                 },
               },
               'application/json': {

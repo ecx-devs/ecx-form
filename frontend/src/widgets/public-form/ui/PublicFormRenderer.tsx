@@ -266,7 +266,7 @@ function QuestionField({
             value={(value as string) || ''}
             onChange={(v) => onChange(v)}
             options={question.options.map((opt) => ({
-              value: opt.id,
+              value: opt.value,
               label: opt.value,
             }))}
             error={error}
@@ -278,7 +278,7 @@ function QuestionField({
           <div className="space-y-2">
             {question.options.map((option) => {
               const selected = Array.isArray(value) ? value : [];
-              const isChecked = selected.includes(option.id);
+              const isChecked = selected.includes(option.value);
 
               return (
                 <Checkbox
@@ -287,9 +287,9 @@ function QuestionField({
                   checked={isChecked}
                   onChange={(checked) => {
                     if (checked) {
-                      onChange([...selected, option.id]);
+                      onChange([...selected, option.value]);
                     } else {
-                      onChange(selected.filter((id) => id !== option.id));
+                      onChange(selected.filter((v) => v !== option.value));
                     }
                   }}
                 />
@@ -307,7 +307,7 @@ function QuestionField({
             value={(value as string) || ''}
             onChange={(v) => onChange(v)}
             options={question.options.map((opt) => ({
-              value: opt.id,
+              value: opt.value,
               label: opt.value,
             }))}
             placeholder="Choose"

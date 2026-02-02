@@ -7,7 +7,7 @@ export const formEndpoints = {
   publish: (id: string) => `/forms/${id}/publish`,
   delete: (id: string) => `/forms/${id}`,
   submissions: (id: string) => `/forms/${id}/submissions`,
-  export: (id: string, format: 'csv' | 'json' = 'csv') => `/forms/${id}/export?format=${format}`,
+  export: (id: string, format: 'xlsx' | 'json' = 'xlsx') => `/forms/${id}/export?format=${format}`,
 };
 
 // Public Access

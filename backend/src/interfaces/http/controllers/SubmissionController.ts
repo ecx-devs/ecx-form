@@ -52,7 +52,7 @@ export class SubmissionController {
 
   exportSubmissions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const format = (req.query.format as ExportFormat) || 'csv';
+      const format = (req.query.format as ExportFormat) || 'xlsx';
       const result = await this.exportSubmissionsUseCase.execute(req.params.id, format);
 
       res.setHeader('Content-Type', result.contentType);

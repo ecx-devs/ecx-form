@@ -11,7 +11,7 @@ interface ResponsesViewProps {
   submissions: Submission[];
   questions: Question[];
   isLoading: boolean;
-  onExport: (format: 'csv' | 'json') => void;
+  onExport: (format: 'xlsx' | 'json') => void;
   isExporting: boolean;
 }
 
@@ -70,11 +70,11 @@ export function ResponsesView({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onExport('csv')}
+            onClick={() => onExport('xlsx')}
             isLoading={isExporting}
             leftIcon={<IconDownload size={18} />}
           >
-            Export to CSV
+            Export to Excel
           </Button>
         )}
       </div>

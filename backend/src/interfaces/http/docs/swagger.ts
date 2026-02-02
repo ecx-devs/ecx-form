@@ -470,7 +470,7 @@ Public form endpoints do not require authentication.
       get: {
         tags: ['Submissions'],
         summary: 'Export submissions',
-        description: 'Exports all submissions as CSV or JSON file.',
+        description: 'Exports all submissions as Excel (XLSX) or JSON file.',
         operationId: 'exportSubmissions',
         parameters: [
           {
@@ -482,8 +482,8 @@ Public form endpoints do not require authentication.
             description: 'Export format',
             schema: {
               type: 'string',
-              enum: ['csv', 'json'],
-              default: 'csv',
+              enum: ['xlsx', 'json'],
+              default: 'xlsx',
             },
           },
         ],
@@ -491,7 +491,7 @@ Public form endpoints do not require authentication.
           '200': {
             description: 'File download',
             content: {
-              'text/csv': {
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
                 schema: {
                   type: 'string',
                   format: 'binary',

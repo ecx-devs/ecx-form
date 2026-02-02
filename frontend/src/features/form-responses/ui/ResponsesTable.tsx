@@ -11,7 +11,7 @@ interface ResponsesTableProps {
   submissions: Submission[];
   questions: Question[];
   isLoading?: boolean;
-  onExport?: (format: 'csv' | 'json') => void;
+  onExport?: (format: 'xlsx' | 'json') => void;
   isExporting?: boolean;
 }
 
@@ -85,11 +85,11 @@ export function ResponsesTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onExport?.('csv')}
+            onClick={() => onExport?.('xlsx')}
             isLoading={isExporting}
             leftIcon={<IconDownload size={16} />}
           >
-            Export CSV
+            Export Excel
           </Button>
           <Button
             variant="ghost"

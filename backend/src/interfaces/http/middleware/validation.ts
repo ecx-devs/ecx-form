@@ -115,7 +115,7 @@ export const submitFormSchema = z.object({
 export const exportQuerySchema = z.object({
   body: z.object({}),
   query: z.object({
-    format: z.enum(['csv', 'json']).optional().default('csv'),
+    format: z.enum(['xlsx', 'json']).optional().default('xlsx'),
   }),
   params: z.object({
     id: z.string().regex(/^ECXF[A-Z]{4}$/i, 'Invalid form ID format'),
