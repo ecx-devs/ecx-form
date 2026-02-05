@@ -12,6 +12,12 @@ export function createUploadRoutes(controller: UploadController): Router {
     controller.getSignedUrl
   );
 
+  // GET /api/v1/upload/url - Get Public URL for a file
+  router.get(
+    '/url',
+    controller.getPublicUrl
+  );
+
   return router;
 }
 

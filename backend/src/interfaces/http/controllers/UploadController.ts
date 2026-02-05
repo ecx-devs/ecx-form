@@ -40,5 +40,33 @@ export class UploadController {
       next(error);
     }
   };
+
+  getPublicUrl = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { path } = req.query;
+
+      if (!path || typeof path !== 'string') {
+        res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_PATH',
+            message: 'File path is required',
+          },
+        });
+        return;
+      }
+
+      const publicUrl = await this.fileUploadService.getPublicUrl(path);
+
+      res.json({
+        success: true,
+        data: {
+          url: publicUrl,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 

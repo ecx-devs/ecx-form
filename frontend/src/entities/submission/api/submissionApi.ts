@@ -92,4 +92,12 @@ export const submissionApi = {
       xhr.send(file);
     });
   },
+
+  // Get public URL for uploaded file
+  async getFileUrl(path: string): Promise<string> {
+    const response = await apiClient.get<{ url: string }>(
+      uploadEndpoints.getPublicUrl(path),
+    );
+    return response.url;
+  },
 };

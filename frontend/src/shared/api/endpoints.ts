@@ -20,4 +20,5 @@ export const publicEndpoints = {
 // File Upload
 export const uploadEndpoints = {
   getSignedUrl: () => "/upload/sign",
+  getPublicUrl: (path: string) => `/upload/url?path=${encodeURIComponent(path)}`,
 };

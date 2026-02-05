@@ -8,6 +8,7 @@ import {
   FormAnswers,
   formAnswersToSubmission,
   useSubmitForm,
+  useFileUpload,
 } from "@/entities/submission";
 import {
   Card,
@@ -173,6 +174,7 @@ export function PublicFormRenderer({ form }: PublicFormRendererProps) {
               error={errors[question.id]}
               onChange={(value) => updateAnswer(question.id, value)}
               index={index}
+              formId={form.id}
             />
           ))}
         </div>
@@ -206,6 +208,7 @@ interface QuestionFieldProps {
   error?: string;
   onChange: (value: string | string[] | null) => void;
   index: number;
+  formId: string;
 }
 
 function QuestionField({
@@ -214,7 +217,49 @@ function QuestionField({
   error,
   onChange,
   index,
+  formId,
 }: QuestionFieldProps) {
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileUpload = useFileUpload(formId);
+
+  const handleFileUpload = async (file: File) => {
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const result = await fileUpload.mutateAsync({
+        file,
+        onProgress: (progress) => setUploadProgress(progress),
+      });
+
+      // Store as JSON string with path and filename
+      const fileData = JSON.stringify({
+        fileName: file.name,
+        filePath: result.path,
+      });
+      onChange(fileData);
+    } catch (error) {
+      console.error("File upload failed:", error);
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  // Parse file value to get display name
+  const getDisplayFileName = () => {
+    if (!value || typeof value !== "string") return null;
+    try {
+      const parsed = JSON.parse(value);
+      return parsed.fileName || value;
+    } catch {
+      return value;
+    }
+  };
+
+  const displayFileName = getDisplayFileName();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -326,28 +371,47 @@ function QuestionField({
               "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
               error
                 ? "border-ecx-red bg-red-50"
-                : "border-gray-300 hover:border-ecx-blue hover:bg-ecx-blue-50",
+                : displayFileName
+                  ? "border-green-300 bg-green-50"
+                  : "border-gray-300 hover:border-ecx-blue hover:bg-ecx-blue-50",
+              isUploading && "pointer-events-none opacity-70",
             )}
           >
             <input
               type="file"
               className="hidden"
               id={`file-${question.id}`}
+              disabled={isUploading}
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                  // Handle file upload
-                  onChange(file.name);
+                  handleFileUpload(file);
                 }
               }}
             />
             <label htmlFor={`file-${question.id}`} className="cursor-pointer">
-              <p className="text-gray-600">
-                {value ? (value as string) : "Click to upload or drag and drop"}
-              </p>
-              <p className="text-body-sm text-gray-400 mt-1">
-                Max file size: 2MB
-              </p>
+              {isUploading ? (
+                <div className="space-y-2">
+                  <Spinner size="md" />
+                  <p className="text-gray-600">Uploading... {Math.round(uploadProgress)}%</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-ecx-blue h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              ) : displayFileName ? (
+                <div className="space-y-1">
+                  <p className="text-green-700 font-medium">{displayFileName}</p>
+                  <p className="text-body-sm text-gray-400">Click to change file</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-gray-600">Click to upload or drag and drop</p>
+                  <p className="text-body-sm text-gray-400 mt-1">Max file size: 2MB</p>
+                </>
+              )}
             </label>
             {error && <p className="text-body-sm text-ecx-red mt-2">{error}</p>}
           </div>

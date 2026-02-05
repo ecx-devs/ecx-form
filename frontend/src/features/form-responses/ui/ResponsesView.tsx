@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Question } from "@/entities/question";
-import { Submission } from "@/entities/submission";
+import { Submission, submissionApi } from "@/entities/submission";
 import {
   Button,
   Card,
@@ -13,6 +13,70 @@ import {
   SkeletonResponseSummary,
 } from "@/shared/ui";
 import { cn } from "@/shared/lib";
+
+// Helper to parse file value (could be JSON string or plain filename)
+function parseFileValue(value: any): { fileName: string; filePath?: string } | null {
+  if (!value) return null;
+  
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed.fileName) {
+        return { fileName: parsed.fileName, filePath: parsed.filePath };
+      }
+    } catch {
+      // Not JSON, treat as plain filename (legacy data)
+      return { fileName: value };
+    }
+  }
+  
+  if (typeof value === "object" && value.fileName) {
+    return { fileName: value.fileName, filePath: value.filePath };
+  }
+  
+  return null;
+}
+
+// File Link Component
+function FileLink({ value }: { value: any }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const fileData = parseFileValue(value);
+  
+  useEffect(() => {
+    if (fileData?.filePath) {
+      setIsLoading(true);
+      submissionApi.getFileUrl(fileData.filePath)
+        .then(setUrl)
+        .catch(() => setUrl(null))
+        .finally(() => setIsLoading(false));
+    }
+  }, [fileData?.filePath]);
+  
+  if (!fileData) return <span className="text-gray-400">—</span>;
+  
+  if (isLoading) {
+    return <span className="text-gray-400">{fileData.fileName}</span>;
+  }
+  
+  if (url) {
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-ecx-blue hover:text-ecx-blue-dark hover:underline inline-flex items-center gap-1"
+      >
+        <IconDownload size={14} />
+        {fileData.fileName}
+      </a>
+    );
+  }
+  
+  // No URL available, just show filename
+  return <span className="text-gray-600">{fileData.fileName}</span>;
+}
 
 interface ResponsesViewProps {
   submissions: Submission[];
@@ -231,7 +295,14 @@ function QuestionSummaryCard({ question, answers }: QuestionSummaryCardProps) {
   const displayedAnswers = showAll ? answers : answers.slice(0, displayLimit);
   const hasMore = answers.length > displayLimit;
 
+  const isFileUpload = question.type === "file_upload";
+
   const renderAnswer = (value: any) => {
+    // For file uploads, use FileLink component
+    if (isFileUpload) {
+      return <FileLink value={value} />;
+    }
+    
     if (Array.isArray(value)) {
       return value.join(", ");
     }
@@ -471,18 +542,23 @@ function IndividualView({
             const answer = currentSubmission.answers.find(
               (a) => a.questionId === question.id,
             );
+            const isFileUpload = question.type === "file_upload";
             return (
               <div key={question.id}>
                 <p className="text-body-sm font-medium text-gray-600 mb-1">
                   {question.title}
                 </p>
-                <p className="text-body text-ecx-black">
+                <div className="text-body text-ecx-black">
                   {answer ? (
-                    formatAnswer(answer.value)
+                    isFileUpload ? (
+                      <FileLink value={answer.value} />
+                    ) : (
+                      formatAnswer(answer.value)
+                    )
                   ) : (
                     <span className="text-gray-400">No answer</span>
                   )}
-                </p>
+                </div>
               </div>
             );
           })}
