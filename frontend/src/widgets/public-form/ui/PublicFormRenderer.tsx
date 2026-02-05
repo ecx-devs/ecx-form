@@ -221,9 +221,23 @@ function QuestionField({
 }: QuestionFieldProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileUpload = useFileUpload(formId);
 
+  const MAX_FILE_SIZE_MB = 2;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
   const handleFileUpload = async (file: File) => {
+    // Clear previous errors
+    setUploadError(null);
+
+    // Validate file size before uploading
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      setUploadError(`File is too large (${fileSizeMB}MB). Maximum size is ${MAX_FILE_SIZE_MB}MB.`);
+      return;
+    }
+
     setIsUploading(true);
     setUploadProgress(0);
 
@@ -239,8 +253,17 @@ function QuestionField({
         filePath: result.path,
       });
       onChange(fileData);
-    } catch (error) {
+    } catch (error: any) {
       console.error("File upload failed:", error);
+      // Extract error message from response
+      const errorMessage = error?.message || "Failed to upload file. Please try again.";
+      if (errorMessage.includes("FILE_TOO_LARGE") || errorMessage.includes("size")) {
+        setUploadError(`File is too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`);
+      } else if (errorMessage.includes("type") || errorMessage.includes("allowed")) {
+        setUploadError("File type not allowed. Please upload an image, PDF, or document.");
+      } else {
+        setUploadError(errorMessage);
+      }
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -369,7 +392,7 @@ function QuestionField({
           <div
             className={cn(
               "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-              error
+              error || uploadError
                 ? "border-ecx-red bg-red-50"
                 : displayFileName
                   ? "border-green-300 bg-green-50"
@@ -423,7 +446,12 @@ function QuestionField({
                 </>
               )}
             </label>
-            {error && <p className="text-body-sm text-ecx-red mt-2">{error}</p>}
+            {uploadError && (
+              <p className="text-body-sm text-ecx-red mt-2">{uploadError}</p>
+            )}
+            {error && !uploadError && (
+              <p className="text-body-sm text-ecx-red mt-2">{error}</p>
+            )}
           </div>
         )}
       </Card>

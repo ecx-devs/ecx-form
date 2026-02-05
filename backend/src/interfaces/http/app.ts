@@ -1,13 +1,13 @@
-import express, { Application } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
+import express, { Application } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
 
-import { getSupabaseClient } from '../../infrastructure/config/supabase';
-import { SupabaseFormRepository } from '../../infrastructure/repositories/SupabaseFormRepository';
-import { SupabaseSubmissionRepository } from '../../infrastructure/repositories/SupabaseSubmissionRepository';
-import { SupabaseAdminRepository } from '../../infrastructure/repositories/SupabaseAdminRepository';
-import { FileUploadService } from '../../infrastructure/services/FileUploadService';
+import { getSupabaseClient } from "../../infrastructure/config/supabase";
+import { SupabaseFormRepository } from "../../infrastructure/repositories/SupabaseFormRepository";
+import { SupabaseSubmissionRepository } from "../../infrastructure/repositories/SupabaseSubmissionRepository";
+import { SupabaseAdminRepository } from "../../infrastructure/repositories/SupabaseAdminRepository";
+import { FileUploadService } from "../../infrastructure/services/FileUploadService";
 
 import {
   CreateFormUseCase,
@@ -17,34 +17,34 @@ import {
   PublishFormUseCase,
   DeleteFormUseCase,
   GetPublicFormUseCase,
-} from '../../application/use-cases/form';
+} from "../../application/use-cases/form";
 
 import {
   SubmitFormUseCase,
   GetSubmissionsUseCase,
   ExportSubmissionsUseCase,
-} from '../../application/use-cases/submission';
+} from "../../application/use-cases/submission";
 
 import {
   LoginUseCase,
   LogoutUseCase,
   VerifySessionUseCase,
-} from '../../application/use-cases/auth';
+} from "../../application/use-cases/auth";
 
-import { FormController } from './controllers/FormController';
-import { SubmissionController } from './controllers/SubmissionController';
-import { UploadController } from './controllers/UploadController';
-import { AuthController } from './controllers/AuthController';
+import { FormController } from "./controllers/FormController";
+import { SubmissionController } from "./controllers/SubmissionController";
+import { UploadController } from "./controllers/UploadController";
+import { AuthController } from "./controllers/AuthController";
 
-import { createFormRoutes } from './routes/formRoutes';
-import { createPublicRoutes } from './routes/publicRoutes';
-import { createSubmissionRoutes } from './routes/submissionRoutes';
-import { createUploadRoutes } from './routes/uploadRoutes';
-import { createAuthRoutes } from './routes/authRoutes';
-import { createDocsRoutes } from './routes/docsRoutes';
-import { createAuthMiddleware } from './middleware/authMiddleware';
+import { createFormRoutes } from "./routes/formRoutes";
+import { createPublicRoutes } from "./routes/publicRoutes";
+import { createSubmissionRoutes } from "./routes/submissionRoutes";
+import { createUploadRoutes } from "./routes/uploadRoutes";
+import { createAuthRoutes } from "./routes/authRoutes";
+import { createDocsRoutes } from "./routes/docsRoutes";
+import { createAuthMiddleware } from "./middleware/authMiddleware";
 
-import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 export function createApp(): Application {
   const app = express();
@@ -69,9 +69,18 @@ export function createApp(): Application {
   const deleteFormUseCase = new DeleteFormUseCase(formRepository);
   const getPublicFormUseCase = new GetPublicFormUseCase(formRepository);
 
-  const submitFormUseCase = new SubmitFormUseCase(formRepository, submissionRepository);
-  const getSubmissionsUseCase = new GetSubmissionsUseCase(formRepository, submissionRepository);
-  const exportSubmissionsUseCase = new ExportSubmissionsUseCase(formRepository, submissionRepository);
+  const submitFormUseCase = new SubmitFormUseCase(
+    formRepository,
+    submissionRepository,
+  );
+  const getSubmissionsUseCase = new GetSubmissionsUseCase(
+    formRepository,
+    submissionRepository,
+  );
+  const exportSubmissionsUseCase = new ExportSubmissionsUseCase(
+    formRepository,
+    submissionRepository,
+  );
 
   const loginUseCase = new LoginUseCase(adminRepository);
   const logoutUseCase = new LogoutUseCase(adminRepository);
@@ -85,13 +94,13 @@ export function createApp(): Application {
     updateFormUseCase,
     publishFormUseCase,
     deleteFormUseCase,
-    getPublicFormUseCase
+    getPublicFormUseCase,
   );
 
   const submissionController = new SubmissionController(
     submitFormUseCase,
     getSubmissionsUseCase,
-    exportSubmissionsUseCase
+    exportSubmissionsUseCase,
   );
 
   const uploadController = new UploadController(fileUploadService);
@@ -99,7 +108,7 @@ export function createApp(): Application {
   const authController = new AuthController(
     loginUseCase,
     logoutUseCase,
-    verifySessionUseCase
+    verifySessionUseCase,
   );
 
   // Auth middleware
@@ -107,27 +116,36 @@ export function createApp(): Application {
 
   // Middleware
   app.use(helmet());
-  app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true,
-  }));
-  app.use(express.json({ limit: '10mb' }));
-  app.use(morgan('combined'));
+  app.use(
+    cors({
+      origin: process.env.FRONTEND_URL || "http://localhost:3000",
+      credentials: true,
+    }),
+  );
+  app.use(express.json({ limit: "10mb" }));
+  app.use(morgan("combined"));
 
   // Health check
-  app.get('/health', (req, res) => {
-    res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+  app.get("/health", (req, res) => {
+    res.json({ status: "healthy", timestamp: new Date().toISOString() });
   });
 
   // Public routes (no auth required)
-  app.use('/api/v1/auth', createAuthRoutes(authController));
-  app.use('/api/v1/public', createPublicRoutes(formController, submissionController));
-  app.use('/api/v1/docs', createDocsRoutes());
-  app.use('/api/v1/upload', createUploadRoutes(uploadController)); // File upload is public for form submissions
+  app.use("/api/v1/auth", createAuthRoutes(authController));
+  app.use(
+    "/api/v1/public",
+    createPublicRoutes(formController, submissionController),
+  );
+  app.use("/api/v1/docs", createDocsRoutes());
+  app.use("/api/v1/upload", createUploadRoutes(uploadController)); // File upload is public for form submissions
 
   // Protected routes (auth required)
-  app.use('/api/v1/forms', authMiddleware, createFormRoutes(formController));
-  app.use('/api/v1/forms', authMiddleware, createSubmissionRoutes(submissionController));
+  app.use("/api/v1/forms", authMiddleware, createFormRoutes(formController));
+  app.use(
+    "/api/v1/forms",
+    authMiddleware,
+    createSubmissionRoutes(submissionController),
+  );
 
   // Error handling
   app.use(notFoundHandler);
