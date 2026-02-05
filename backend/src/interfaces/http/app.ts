@@ -123,11 +123,11 @@ export function createApp(): Application {
   app.use('/api/v1/auth', createAuthRoutes(authController));
   app.use('/api/v1/public', createPublicRoutes(formController, submissionController));
   app.use('/api/v1/docs', createDocsRoutes());
+  app.use('/api/v1/upload', createUploadRoutes(uploadController)); // File upload is public for form submissions
 
   // Protected routes (auth required)
   app.use('/api/v1/forms', authMiddleware, createFormRoutes(formController));
   app.use('/api/v1/forms', authMiddleware, createSubmissionRoutes(submissionController));
-  app.use('/api/v1/upload', authMiddleware, createUploadRoutes(uploadController));
 
   // Error handling
   app.use(notFoundHandler);

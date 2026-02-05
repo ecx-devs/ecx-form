@@ -393,7 +393,9 @@ function QuestionField({
               {isUploading ? (
                 <div className="space-y-2">
                   <Spinner size="md" />
-                  <p className="text-gray-600">Uploading... {Math.round(uploadProgress)}%</p>
+                  <p className="text-gray-600">
+                    Uploading... {Math.round(uploadProgress)}%
+                  </p>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-ecx-blue h-2 rounded-full transition-all duration-300"
@@ -403,13 +405,21 @@ function QuestionField({
                 </div>
               ) : displayFileName ? (
                 <div className="space-y-1">
-                  <p className="text-green-700 font-medium">{displayFileName}</p>
-                  <p className="text-body-sm text-gray-400">Click to change file</p>
+                  <p className="text-green-700 font-medium">
+                    {displayFileName}
+                  </p>
+                  <p className="text-body-sm text-gray-400">
+                    Click to change file
+                  </p>
                 </div>
               ) : (
                 <>
-                  <p className="text-gray-600">Click to upload or drag and drop</p>
-                  <p className="text-body-sm text-gray-400 mt-1">Max file size: 2MB</p>
+                  <p className="text-gray-600">
+                    Click to upload or drag and drop
+                  </p>
+                  <p className="text-body-sm text-gray-400 mt-1">
+                    Max file size: 2MB
+                  </p>
                 </>
               )}
             </label>

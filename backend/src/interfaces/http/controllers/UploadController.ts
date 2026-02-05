@@ -1,10 +1,14 @@
-import { Request, Response, NextFunction } from 'express';
-import { FileUploadService } from '../../../infrastructure/services/FileUploadService';
+import { Request, Response, NextFunction } from "express";
+import { FileUploadService } from "../../../infrastructure/services/FileUploadService";
 
 export class UploadController {
   constructor(private readonly fileUploadService: FileUploadService) {}
 
-  getSignedUrl = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getSignedUrl = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { formId, filename, contentType, fileSize } = req.body;
 
@@ -14,7 +18,7 @@ export class UploadController {
         res.status(413).json({
           success: false,
           error: {
-            code: 'FILE_TOO_LARGE',
+            code: "FILE_TOO_LARGE",
             message: `File size exceeds maximum allowed size of ${maxSize / (1024 * 1024)}MB`,
           },
         });
@@ -24,7 +28,7 @@ export class UploadController {
       const result = await this.fileUploadService.getSignedUploadUrl(
         formId,
         filename,
-        contentType
+        contentType,
       );
 
       res.json({
@@ -41,16 +45,20 @@ export class UploadController {
     }
   };
 
-  getPublicUrl = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getPublicUrl = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const { path } = req.query;
 
-      if (!path || typeof path !== 'string') {
+      if (!path || typeof path !== "string") {
         res.status(400).json({
           success: false,
           error: {
-            code: 'INVALID_PATH',
-            message: 'File path is required',
+            code: "INVALID_PATH",
+            message: "File path is required",
           },
         });
         return;
@@ -69,4 +77,3 @@ export class UploadController {
     }
   };
 }
-
