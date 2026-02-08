@@ -4,6 +4,7 @@ export interface FormSettingsProps {
   confirmationMessage: string;
   showProgressBar: boolean;
   shuffleQuestions: boolean;
+  acceptingResponses: boolean;
 }
 
 export class FormSettings {
@@ -12,6 +13,7 @@ export class FormSettings {
   readonly confirmationMessage: string;
   readonly showProgressBar: boolean;
   readonly shuffleQuestions: boolean;
+  readonly acceptingResponses: boolean;
 
   private constructor(props: FormSettingsProps) {
     this.limitToOneResponse = props.limitToOneResponse;
@@ -19,6 +21,7 @@ export class FormSettings {
     this.confirmationMessage = props.confirmationMessage;
     this.showProgressBar = props.showProgressBar;
     this.shuffleQuestions = props.shuffleQuestions;
+    this.acceptingResponses = props.acceptingResponses;
   }
 
   static default(): FormSettings {
@@ -28,6 +31,7 @@ export class FormSettings {
       confirmationMessage: 'Your response has been recorded.',
       showProgressBar: true,
       shuffleQuestions: false,
+      acceptingResponses: true,
     });
   }
 
@@ -39,6 +43,7 @@ export class FormSettings {
       confirmationMessage: props.confirmationMessage ?? defaults.confirmationMessage,
       showProgressBar: props.showProgressBar ?? defaults.showProgressBar,
       shuffleQuestions: props.shuffleQuestions ?? defaults.shuffleQuestions,
+      acceptingResponses: props.acceptingResponses ?? defaults.acceptingResponses,
     });
   }
 
@@ -49,6 +54,7 @@ export class FormSettings {
       confirmationMessage: updates.confirmationMessage ?? current.confirmationMessage,
       showProgressBar: updates.showProgressBar ?? current.showProgressBar,
       shuffleQuestions: updates.shuffleQuestions ?? current.shuffleQuestions,
+      acceptingResponses: updates.acceptingResponses ?? current.acceptingResponses,
     });
   }
 
@@ -59,6 +65,7 @@ export class FormSettings {
       confirmationMessage: this.confirmationMessage,
       showProgressBar: this.showProgressBar,
       shuffleQuestions: this.shuffleQuestions,
+      acceptingResponses: this.acceptingResponses,
     };
   }
 }

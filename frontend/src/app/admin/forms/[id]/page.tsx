@@ -14,10 +14,26 @@ export default function FormEditorPage() {
   const formId = params.id as string;
 
   const { data: form, isLoading, error } = useForm(formId);
-  const { currentForm } = useFormStore();
+  const { currentForm, updateSettings } = useFormStore();
+  const updateFormMutation = useUpdateForm();
   const { data: submissionsData, isLoading: isLoadingSubmissions } =
     useSubmissions(formId);
   const exportMutation = useExportSubmissions();
+
+  const handleToggleAcceptingResponses = (accepting: boolean) => {
+    if (!currentForm) return;
+    
+    // Update local state
+    updateSettings({ acceptingResponses: accepting });
+    
+    // Save to server
+    updateFormMutation.mutate({
+      id: currentForm.id,
+      input: {
+        settings: { ...currentForm.settings, acceptingResponses: accepting },
+      },
+    });
+  };
 
   if (isLoading) {
     return (
@@ -91,6 +107,8 @@ export default function FormEditorPage() {
                 exportMutation.mutate({ formId, format })
               }
               isExporting={exportMutation.isPending}
+              acceptingResponses={currentForm?.settings.acceptingResponses ?? true}
+              onToggleAcceptingResponses={handleToggleAcceptingResponses}
             />
           </div>
         </TabContent>

@@ -8,6 +8,7 @@ export interface FormSettings {
   confirmationMessage: string;
   showProgressBar: boolean;
   shuffleQuestions: boolean;
+  acceptingResponses: boolean;
 }
 
 export interface Form {
@@ -62,5 +63,6 @@ export const DEFAULT_FORM_SETTINGS: FormSettings = {
   confirmationMessage: 'Your response has been recorded.',
   showProgressBar: true,
   shuffleQuestions: false,
+  acceptingResponses: true,
 };
 

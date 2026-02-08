@@ -25,6 +25,11 @@ export class SubmitFormUseCase {
       throw new FormNotPublishedError('This form is not accepting responses');
     }
 
+    // Check if form is accepting responses
+    if (!form.settings.acceptingResponses) {
+      throw new FormNotPublishedError('This form is no longer accepting responses');
+    }
+
     // Check for "Fill Once" restriction
     if (form.settings.limitToOneResponse && dto.metadata.localStorageKey) {
       const alreadySubmitted = await this.submissionRepository.existsByLocalStorageKey(

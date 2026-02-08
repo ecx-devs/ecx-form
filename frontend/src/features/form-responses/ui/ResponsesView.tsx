@@ -11,6 +11,7 @@ import {
   IconChevronLeft,
   IconChevronRight,
   SkeletonResponseSummary,
+  Toggle,
 } from "@/shared/ui";
 import { cn } from "@/shared/lib";
 
@@ -87,6 +88,8 @@ interface ResponsesViewProps {
   isLoading: boolean;
   onExport: (format: "xlsx" | "json") => void;
   isExporting: boolean;
+  acceptingResponses?: boolean;
+  onToggleAcceptingResponses?: (accepting: boolean) => void;
 }
 
 type ViewTab = "summary" | "question" | "individual";
@@ -97,6 +100,8 @@ export function ResponsesView({
   isLoading,
   onExport,
   isExporting,
+  acceptingResponses = true,
+  onToggleAcceptingResponses,
 }: ResponsesViewProps) {
   const [activeTab, setActiveTab] = useState<ViewTab>("summary");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -138,6 +143,32 @@ export function ResponsesView({
 
   return (
     <div className="space-y-6">
+      {/* Accepting Responses Toggle */}
+      {onToggleAcceptingResponses && (
+        <Card className={cn(
+          "border-l-4",
+          acceptingResponses ? "border-l-green-500" : "border-l-ecx-red"
+        )}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-body font-medium text-ecx-black">
+                {acceptingResponses ? "Form is accepting responses" : "Form is closed"}
+              </p>
+              <p className="text-body-sm text-gray-500">
+                {acceptingResponses 
+                  ? "New submissions are allowed" 
+                  : "No new submissions will be accepted"}
+              </p>
+            </div>
+            <Toggle
+              label=""
+              checked={acceptingResponses}
+              onChange={onToggleAcceptingResponses}
+            />
+          </div>
+        </Card>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

@@ -73,8 +73,8 @@ export function FormBuilderHeader() {
 
   const handlePreview = () => {
     if (!currentForm) return;
-    // Open in new tab - draft forms can still be previewed
-    const previewUrl = `/${currentForm.id}`;
+    // Open admin preview - works for both draft and published forms
+    const previewUrl = `/admin/forms/${currentForm.id}/preview`;
     window.open(previewUrl, '_blank');
   };
 

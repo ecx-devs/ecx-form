@@ -32,9 +32,10 @@ import {
 
 interface PublicFormRendererProps {
   form: PublicForm;
+  isPreview?: boolean;
 }
 
-export function PublicFormRenderer({ form }: PublicFormRendererProps) {
+export function PublicFormRenderer({ form, isPreview = false }: PublicFormRendererProps) {
   const [answers, setAnswers] = useState<FormAnswers>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -45,9 +46,9 @@ export function PublicFormRenderer({ form }: PublicFormRendererProps) {
 
   const submitMutation = useSubmitForm(form.id);
 
-  // Check if already submitted
+  // Check if already submitted (skip in preview mode)
   useEffect(() => {
-    if (form.settings.limitToOneResponse && hasSubmittedForm(form.id)) {
+    if (!isPreview && form.settings.limitToOneResponse && hasSubmittedForm(form.id)) {
       setIsSubmitted(true);
       setSubmissionResult({
         submissionId: "",
@@ -55,18 +56,20 @@ export function PublicFormRenderer({ form }: PublicFormRendererProps) {
           "You have already submitted a response to this form.",
       });
     }
-  }, [form.id, form.settings.limitToOneResponse]);
+  }, [form.id, form.settings.limitToOneResponse, isPreview]);
 
-  // Load draft answers
+  // Load draft answers (skip in preview mode)
   useEffect(() => {
+    if (isPreview) return;
     const draft = getFormDraft<FormAnswers>(form.id);
     if (draft) {
       setAnswers(draft);
     }
-  }, [form.id]);
+  }, [form.id, isPreview]);
 
-  // Auto-save answers
+  // Auto-save answers (skip in preview mode)
   useEffect(() => {
+    if (isPreview) return;
     if (Object.keys(answers).length > 0) {
       saveFormDraft(form.id, answers);
     }
@@ -107,6 +110,18 @@ export function PublicFormRenderer({ form }: PublicFormRendererProps) {
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
+
+    // In preview mode, just show a success message without actually submitting
+    if (isPreview) {
+      setIsSubmitted(true);
+      setSubmissionResult({
+        submissionId: 'PREVIEW-0000',
+        confirmationMessage: form.settings.limitToOneResponse 
+          ? 'Preview: Your response has been recorded (not actually saved in preview mode).'
+          : 'Preview: Your response has been recorded (not actually saved in preview mode).',
+      });
+      return;
+    }
 
     const result = await submitMutation.mutateAsync({
       answers: formAnswersToSubmission(answers),
