@@ -1,6 +1,6 @@
-import { Question } from '../../question';
+import { Question } from "../../question";
 
-export type FormStatus = 'draft' | 'published';
+export type FormStatus = "draft" | "published";
 
 export interface FormSettings {
   limitToOneResponse: boolean;
@@ -60,9 +60,8 @@ export interface UpdateFormInput {
 export const DEFAULT_FORM_SETTINGS: FormSettings = {
   limitToOneResponse: false,
   allowResponseEditing: false,
-  confirmationMessage: 'Your response has been recorded.',
+  confirmationMessage: "Your response has been recorded.",
   showProgressBar: true,
   shuffleQuestions: false,
   acceptingResponses: true,
 };
-

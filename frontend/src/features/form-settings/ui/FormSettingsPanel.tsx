@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { useFormStore, useUpdateForm } from '@/entities/form';
-import { Card, Toggle, TextArea } from '@/shared/ui';
+import { useEffect, useRef } from "react";
+import { useFormStore, useUpdateForm } from "@/entities/form";
+import { Card, Toggle, TextArea } from "@/shared/ui";
 
 export function FormSettingsPanel() {
   const { currentForm, updateSettings } = useFormStore();
@@ -93,9 +93,7 @@ export function FormSettingsPanel() {
             label="Show progress bar"
             description="Display a progress bar at the top of the form"
             checked={settings.showProgressBar}
-            onChange={(checked) =>
-              updateSettings({ showProgressBar: checked })
-            }
+            onChange={(checked) => updateSettings({ showProgressBar: checked })}
           />
 
           <Toggle
@@ -129,4 +127,3 @@ export function FormSettingsPanel() {
     </div>
   );
 }
-

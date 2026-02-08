@@ -35,7 +35,10 @@ interface PublicFormRendererProps {
   isPreview?: boolean;
 }
 
-export function PublicFormRenderer({ form, isPreview = false }: PublicFormRendererProps) {
+export function PublicFormRenderer({
+  form,
+  isPreview = false,
+}: PublicFormRendererProps) {
   const [answers, setAnswers] = useState<FormAnswers>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -48,7 +51,11 @@ export function PublicFormRenderer({ form, isPreview = false }: PublicFormRender
 
   // Check if already submitted (skip in preview mode)
   useEffect(() => {
-    if (!isPreview && form.settings.limitToOneResponse && hasSubmittedForm(form.id)) {
+    if (
+      !isPreview &&
+      form.settings.limitToOneResponse &&
+      hasSubmittedForm(form.id)
+    ) {
       setIsSubmitted(true);
       setSubmissionResult({
         submissionId: "",
@@ -115,10 +122,10 @@ export function PublicFormRenderer({ form, isPreview = false }: PublicFormRender
     if (isPreview) {
       setIsSubmitted(true);
       setSubmissionResult({
-        submissionId: 'PREVIEW-0000',
-        confirmationMessage: form.settings.limitToOneResponse 
-          ? 'Preview: Your response has been recorded (not actually saved in preview mode).'
-          : 'Preview: Your response has been recorded (not actually saved in preview mode).',
+        submissionId: "PREVIEW-0000",
+        confirmationMessage: form.settings.limitToOneResponse
+          ? "Preview: Your response has been recorded (not actually saved in preview mode)."
+          : "Preview: Your response has been recorded (not actually saved in preview mode).",
       });
       return;
     }

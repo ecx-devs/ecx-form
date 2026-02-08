@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { useFormStore, useUpdateForm, usePublishForm } from '@/entities/form';
-import { useAuthStore, useLogout } from '@/entities/auth';
-import { ShareModal, PublishSuccessModal } from '@/widgets/modals';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useFormStore, useUpdateForm, usePublishForm } from "@/entities/form";
+import { useAuthStore, useLogout } from "@/entities/auth";
+import { ShareModal, PublishSuccessModal } from "@/widgets/modals";
 import {
   Logo,
   Button,
@@ -17,9 +17,9 @@ import {
   IconMenu,
   IconX,
   Spinner,
-} from '@/shared/ui';
-import { cn } from '@/shared/lib';
-import { APP_URL } from '@/shared/config/constants';
+} from "@/shared/ui";
+import { cn } from "@/shared/lib";
+import { APP_URL } from "@/shared/config/constants";
 
 export function FormBuilderHeader() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export function FormBuilderHeader() {
   const updateFormMutation = useUpdateForm();
   const publishMutation = usePublishForm();
 
-  const [title, setTitle] = useState(currentForm?.title || '');
+  const [title, setTitle] = useState(currentForm?.title || "");
   const [showShareModal, setShowShareModal] = useState(false);
   const [showPublishSuccessModal, setShowPublishSuccessModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -63,7 +63,7 @@ export function FormBuilderHeader() {
 
   const handlePublish = () => {
     if (!currentForm) return;
-    
+
     publishMutation.mutate(currentForm.id, {
       onSuccess: () => {
         setShowPublishSuccessModal(true);
@@ -75,7 +75,7 @@ export function FormBuilderHeader() {
     if (!currentForm) return;
     // Open admin preview - works for both draft and published forms
     const previewUrl = `/admin/forms/${currentForm.id}/preview`;
-    window.open(previewUrl, '_blank');
+    window.open(previewUrl, "_blank");
   };
 
   const handleShare = () => {
@@ -133,7 +133,7 @@ export function FormBuilderHeader() {
               </Button>
 
               {/* Status & Publish/Share */}
-              {currentForm.status === 'draft' ? (
+              {currentForm.status === "draft" ? (
                 <Button
                   variant="primary"
                   size="sm"
@@ -173,7 +173,7 @@ export function FormBuilderHeader() {
           {isMobileMenuOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               className="md:hidden border-t border-gray-100 py-4 space-y-3"
             >
@@ -203,7 +203,7 @@ export function FormBuilderHeader() {
                   Preview Form
                 </Button>
 
-                {currentForm.status === 'draft' ? (
+                {currentForm.status === "draft" ? (
                   <Button
                     variant="primary"
                     fullWidth

@@ -1,13 +1,21 @@
-'use client';
+"use client";
 
-import { useParams } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { useForm, useFormStore, useUpdateForm } from '@/entities/form';
-import { useSubmissions, useExportSubmissions } from '@/entities/submission';
-import { FormBuilderHeader, FormBuilderCanvas } from '@/widgets/form-builder';
-import { FormSettingsPanel } from '@/features/form-settings';
-import { ResponsesView } from '@/features/form-responses';
-import { Tabs, TabList, TabTrigger, TabContent, Spinner, Card, SkeletonForm } from '@/shared/ui';
+import { useParams } from "next/navigation";
+import { motion } from "framer-motion";
+import { useForm, useFormStore, useUpdateForm } from "@/entities/form";
+import { useSubmissions, useExportSubmissions } from "@/entities/submission";
+import { FormBuilderHeader, FormBuilderCanvas } from "@/widgets/form-builder";
+import { FormSettingsPanel } from "@/features/form-settings";
+import { ResponsesView } from "@/features/form-responses";
+import {
+  Tabs,
+  TabList,
+  TabTrigger,
+  TabContent,
+  Spinner,
+  Card,
+  SkeletonForm,
+} from "@/shared/ui";
 
 export default function FormEditorPage() {
   const params = useParams();
@@ -22,10 +30,10 @@ export default function FormEditorPage() {
 
   const handleToggleAcceptingResponses = (accepting: boolean) => {
     if (!currentForm) return;
-    
+
     // Update local state
     updateSettings({ acceptingResponses: accepting });
-    
+
     // Save to server
     updateFormMutation.mutate({
       id: currentForm.id,
@@ -53,15 +61,26 @@ export default function FormEditorPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <Card className="text-center max-w-md">
           <div className="w-16 h-16 mx-auto mb-4 bg-ecx-red-50 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-ecx-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              className="w-8 h-8 text-ecx-red"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
           </div>
           <h2 className="text-heading-3 font-varela text-ecx-black mb-2">
             Form not found
           </h2>
           <p className="text-body text-gray-600">
-            The form you&apos;re looking for doesn&apos;t exist or has been deleted.
+            The form you&apos;re looking for doesn&apos;t exist or has been
+            deleted.
           </p>
         </Card>
       </div>
@@ -103,11 +122,11 @@ export default function FormEditorPage() {
               submissions={submissionsData?.submissions || []}
               questions={currentForm?.questions || []}
               isLoading={isLoadingSubmissions}
-              onExport={(format) =>
-                exportMutation.mutate({ formId, format })
-              }
+              onExport={(format) => exportMutation.mutate({ formId, format })}
               isExporting={exportMutation.isPending}
-              acceptingResponses={currentForm?.settings.acceptingResponses ?? true}
+              acceptingResponses={
+                currentForm?.settings.acceptingResponses ?? true
+              }
               onToggleAcceptingResponses={handleToggleAcceptingResponses}
             />
           </div>

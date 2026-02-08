@@ -28,7 +28,7 @@ export class FormSettings {
     return new FormSettings({
       limitToOneResponse: false,
       allowResponseEditing: false,
-      confirmationMessage: 'Your response has been recorded.',
+      confirmationMessage: "Your response has been recorded.",
       showProgressBar: true,
       shuffleQuestions: false,
       acceptingResponses: true,
@@ -38,23 +38,34 @@ export class FormSettings {
   static create(props: Partial<FormSettingsProps>): FormSettings {
     const defaults = FormSettings.default();
     return new FormSettings({
-      limitToOneResponse: props.limitToOneResponse ?? defaults.limitToOneResponse,
-      allowResponseEditing: props.allowResponseEditing ?? defaults.allowResponseEditing,
-      confirmationMessage: props.confirmationMessage ?? defaults.confirmationMessage,
+      limitToOneResponse:
+        props.limitToOneResponse ?? defaults.limitToOneResponse,
+      allowResponseEditing:
+        props.allowResponseEditing ?? defaults.allowResponseEditing,
+      confirmationMessage:
+        props.confirmationMessage ?? defaults.confirmationMessage,
       showProgressBar: props.showProgressBar ?? defaults.showProgressBar,
       shuffleQuestions: props.shuffleQuestions ?? defaults.shuffleQuestions,
-      acceptingResponses: props.acceptingResponses ?? defaults.acceptingResponses,
+      acceptingResponses:
+        props.acceptingResponses ?? defaults.acceptingResponses,
     });
   }
 
-  static merge(current: FormSettings, updates: Partial<FormSettings>): FormSettings {
+  static merge(
+    current: FormSettings,
+    updates: Partial<FormSettings>,
+  ): FormSettings {
     return new FormSettings({
-      limitToOneResponse: updates.limitToOneResponse ?? current.limitToOneResponse,
-      allowResponseEditing: updates.allowResponseEditing ?? current.allowResponseEditing,
-      confirmationMessage: updates.confirmationMessage ?? current.confirmationMessage,
+      limitToOneResponse:
+        updates.limitToOneResponse ?? current.limitToOneResponse,
+      allowResponseEditing:
+        updates.allowResponseEditing ?? current.allowResponseEditing,
+      confirmationMessage:
+        updates.confirmationMessage ?? current.confirmationMessage,
       showProgressBar: updates.showProgressBar ?? current.showProgressBar,
       shuffleQuestions: updates.shuffleQuestions ?? current.shuffleQuestions,
-      acceptingResponses: updates.acceptingResponses ?? current.acceptingResponses,
+      acceptingResponses:
+        updates.acceptingResponses ?? current.acceptingResponses,
     });
   }
 
@@ -69,4 +80,3 @@ export class FormSettings {
     };
   }
 }
-

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useParams, useRouter } from 'next/navigation';
-import { useForm } from '@/entities/form';
-import { PublicFormRenderer } from '@/widgets/public-form';
-import { Logo, Card, Spinner, Button, IconChevronLeft } from '@/shared/ui';
+import { useParams, useRouter } from "next/navigation";
+import { useForm } from "@/entities/form";
+import { PublicFormRenderer } from "@/widgets/public-form";
+import { Logo, Card, Spinner, Button, IconChevronLeft } from "@/shared/ui";
 
 export default function FormPreviewPage() {
   const params = useParams();
@@ -31,10 +31,10 @@ export default function FormPreviewPage() {
           <p className="text-body text-gray-600">
             The form you&apos;re trying to preview doesn&apos;t exist.
           </p>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="mt-4"
-            onClick={() => router.push('/admin')}
+            onClick={() => router.push("/admin")}
           >
             Back to Dashboard
           </Button>
@@ -69,15 +69,13 @@ export default function FormPreviewPage() {
               <IconChevronLeft size={20} />
             </button>
             <span className="font-medium">Preview Mode</span>
-            {form.status === 'draft' && (
+            {form.status === "draft" && (
               <span className="px-2 py-0.5 bg-black/10 text-sm rounded">
                 Draft
               </span>
             )}
           </div>
-          <p className="text-sm">
-            Submissions in preview mode are not saved
-          </p>
+          <p className="text-sm">Submissions in preview mode are not saved</p>
         </div>
       </div>
 

@@ -1,16 +1,16 @@
-import { Submission } from '../../../domain/entities/Submission';
-import { Question } from '../../../domain/entities/Question';
-import { IFormRepository } from '../../../domain/repositories/IFormRepository';
-import { ISubmissionRepository } from '../../../domain/repositories/ISubmissionRepository';
-import { FormId } from '../../../domain/value-objects/FormId';
-import { CreateSubmissionDTO, SubmitSuccessDTO } from '../../dto/SubmissionDTO';
-import { NotFoundError } from '../form/GetFormUseCase';
-import { FormNotPublishedError } from '../form/GetPublicFormUseCase';
+import { Submission } from "../../../domain/entities/Submission";
+import { Question } from "../../../domain/entities/Question";
+import { IFormRepository } from "../../../domain/repositories/IFormRepository";
+import { ISubmissionRepository } from "../../../domain/repositories/ISubmissionRepository";
+import { FormId } from "../../../domain/value-objects/FormId";
+import { CreateSubmissionDTO, SubmitSuccessDTO } from "../../dto/SubmissionDTO";
+import { NotFoundError } from "../form/GetFormUseCase";
+import { FormNotPublishedError } from "../form/GetPublicFormUseCase";
 
 export class SubmitFormUseCase {
   constructor(
     private readonly formRepository: IFormRepository,
-    private readonly submissionRepository: ISubmissionRepository
+    private readonly submissionRepository: ISubmissionRepository,
   ) {}
 
   async execute(dto: CreateSubmissionDTO): Promise<SubmitSuccessDTO> {
@@ -18,27 +18,32 @@ export class SubmitFormUseCase {
     const form = await this.formRepository.findById(formId);
 
     if (!form) {
-      throw new NotFoundError('Form not found');
+      throw new NotFoundError("Form not found");
     }
 
     if (!form.isPublished) {
-      throw new FormNotPublishedError('This form is not accepting responses');
+      throw new FormNotPublishedError("This form is not accepting responses");
     }
 
     // Check if form is accepting responses
     if (!form.settings.acceptingResponses) {
-      throw new FormNotPublishedError('This form is no longer accepting responses');
+      throw new FormNotPublishedError(
+        "This form is no longer accepting responses",
+      );
     }
 
     // Check for "Fill Once" restriction
     if (form.settings.limitToOneResponse && dto.metadata.localStorageKey) {
-      const alreadySubmitted = await this.submissionRepository.existsByLocalStorageKey(
-        dto.formId,
-        dto.metadata.localStorageKey
-      );
+      const alreadySubmitted =
+        await this.submissionRepository.existsByLocalStorageKey(
+          dto.formId,
+          dto.metadata.localStorageKey,
+        );
 
       if (alreadySubmitted) {
-        throw new AlreadySubmittedError('You have already submitted a response to this form');
+        throw new AlreadySubmittedError(
+          "You have already submitted a response to this form",
+        );
       }
     }
 
@@ -46,14 +51,16 @@ export class SubmitFormUseCase {
     this.validateRequiredFields(form.questions, dto.answers);
 
     // Get submission count for ID generation
-    const submissionCount = await this.submissionRepository.countByFormId(dto.formId);
+    const submissionCount = await this.submissionRepository.countByFormId(
+      dto.formId,
+    );
 
     // Create submission
     const submission = Submission.create(
       dto.formId,
       dto.answers,
       dto.metadata,
-      submissionCount
+      submissionCount,
     );
 
     await this.submissionRepository.create(submission);
@@ -70,12 +77,12 @@ export class SubmitFormUseCase {
 
   private validateRequiredFields(
     questions: Question[],
-    answers: CreateSubmissionDTO['answers']
+    answers: CreateSubmissionDTO["answers"],
   ): void {
     const requiredQuestions = questions.filter((q: Question) => q.required);
 
     for (const question of requiredQuestions) {
-      const answer = answers.find(a => a.questionId === question.id);
+      const answer = answers.find((a) => a.questionId === question.id);
 
       if (!answer || this.isEmptyAnswer(answer.value)) {
         throw new ValidationError(`Question "${question.title}" is required`);
@@ -85,7 +92,7 @@ export class SubmitFormUseCase {
 
   private isEmptyAnswer(value: string | string[] | null): boolean {
     if (value === null) return true;
-    if (typeof value === 'string') return value.trim() === '';
+    if (typeof value === "string") return value.trim() === "";
     if (Array.isArray(value)) return value.length === 0;
     return true;
   }
@@ -94,14 +101,13 @@ export class SubmitFormUseCase {
 export class AlreadySubmittedError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'AlreadySubmittedError';
+    this.name = "AlreadySubmittedError";
   }
 }
 
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'ValidationError';
+    this.name = "ValidationError";
   }
 }
-
