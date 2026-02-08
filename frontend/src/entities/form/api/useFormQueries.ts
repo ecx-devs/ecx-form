@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { formApi } from './formApi';
-import { CreateFormInput, UpdateFormInput } from '../model/types';
-import { useFormStore } from '../model/store';
-import toast from 'react-hot-toast';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { formApi } from "./formApi";
+import { CreateFormInput, UpdateFormInput } from "../model/types";
+import { useFormStore } from "../model/store";
+import toast from "react-hot-toast";
 
 export const formKeys = {
-  all: ['forms'] as const,
-  lists: () => [...formKeys.all, 'list'] as const,
+  all: ["forms"] as const,
+  lists: () => [...formKeys.all, "list"] as const,
   list: () => [...formKeys.lists()] as const,
-  details: () => [...formKeys.all, 'detail'] as const,
+  details: () => [...formKeys.all, "detail"] as const,
   detail: (id: string) => [...formKeys.details(), id] as const,
-  public: (id: string) => ['public-form', id] as const,
+  public: (id: string) => ["public-form", id] as const,
 };
 
 // List all forms
@@ -62,11 +62,11 @@ export function useCreateForm() {
     mutationFn: (input: CreateFormInput) => formApi.create(input),
     onSuccess: (form) => {
       queryClient.invalidateQueries({ queryKey: formKeys.lists() });
-      toast.success('Form created successfully');
+      toast.success("Form created successfully");
       return form;
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to create form');
+      toast.error(error.message || "Failed to create form");
     },
   });
 }
@@ -87,7 +87,7 @@ export function useUpdateForm() {
       queryClient.invalidateQueries({ queryKey: formKeys.lists() });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to save changes');
+      toast.error(error.message || "Failed to save changes");
     },
     onSettled: () => {
       setSaving(false);
@@ -98,16 +98,19 @@ export function useUpdateForm() {
 // Publish form mutation
 export function usePublishForm() {
   const queryClient = useQueryClient();
+  const setCurrentForm = useFormStore((state) => state.setCurrentForm);
 
   return useMutation({
     mutationFn: (id: string) => formApi.publish(id),
     onSuccess: (form) => {
       queryClient.setQueryData(formKeys.detail(form.id), form);
       queryClient.invalidateQueries({ queryKey: formKeys.lists() });
-      toast.success('Form published successfully!');
+      // Update the current form in the store so UI reflects the change immediately
+      setCurrentForm(form);
+      toast.success("Form published successfully!");
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to publish form');
+      toast.error(error.message || "Failed to publish form");
     },
   });
 }
@@ -121,11 +124,10 @@ export function useDeleteForm() {
     onSuccess: (_, id) => {
       queryClient.removeQueries({ queryKey: formKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: formKeys.lists() });
-      toast.success('Form deleted successfully');
+      toast.success("Form deleted successfully");
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to delete form');
+      toast.error(error.message || "Failed to delete form");
     },
   });
 }
-

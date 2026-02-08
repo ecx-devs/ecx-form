@@ -234,7 +234,9 @@ function QuestionField({
     // Validate file size before uploading
     if (file.size > MAX_FILE_SIZE_BYTES) {
       const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-      setUploadError(`File is too large (${fileSizeMB}MB). Maximum size is ${MAX_FILE_SIZE_MB}MB.`);
+      setUploadError(
+        `File is too large (${fileSizeMB}MB). Maximum size is ${MAX_FILE_SIZE_MB}MB.`,
+      );
       return;
     }
 
@@ -256,11 +258,22 @@ function QuestionField({
     } catch (error: any) {
       console.error("File upload failed:", error);
       // Extract error message from response
-      const errorMessage = error?.message || "Failed to upload file. Please try again.";
-      if (errorMessage.includes("FILE_TOO_LARGE") || errorMessage.includes("size")) {
-        setUploadError(`File is too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`);
-      } else if (errorMessage.includes("type") || errorMessage.includes("allowed")) {
-        setUploadError("File type not allowed. Please upload an image, PDF, or document.");
+      const errorMessage =
+        error?.message || "Failed to upload file. Please try again.";
+      if (
+        errorMessage.includes("FILE_TOO_LARGE") ||
+        errorMessage.includes("size")
+      ) {
+        setUploadError(
+          `File is too large. Maximum size is ${MAX_FILE_SIZE_MB}MB.`,
+        );
+      } else if (
+        errorMessage.includes("type") ||
+        errorMessage.includes("allowed")
+      ) {
+        setUploadError(
+          "File type not allowed. Please upload an image, PDF, or document.",
+        );
       } else {
         setUploadError(errorMessage);
       }
