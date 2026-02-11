@@ -23,5 +23,7 @@ services:
         sync: false # Set manually in dashboard
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false # Set manually in dashboard
+      - key: BACKEND_URL
+        value: https://ecx-forms-api.onrender.com
     autoDeploy: true
 
