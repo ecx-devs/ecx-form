@@ -181,7 +181,7 @@ export function PublicFormRenderer({
             {form.title}
           </h1>
           {form.description && (
-            <p className="text-body text-gray-600">{form.description}</p>
+            <p className="text-body text-gray-600 whitespace-pre-line">{form.description}</p>
           )}
           <p className="text-body-sm text-ecx-red mt-4">* Required</p>
         </Card>
