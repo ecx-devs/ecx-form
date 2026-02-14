@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useFormStore, useUpdateForm, usePublishForm } from "@/entities/form";
-import { useAuthStore, useLogout } from "@/entities/auth";
+import { useFormStore, usePublishForm } from "@/entities/form";
+import { useAuthStore } from "@/entities/auth";
 import { ShareModal, PublishSuccessModal } from "@/widgets/modals";
 import {
   Logo,
@@ -22,44 +21,20 @@ import { cn } from "@/shared/lib";
 import { APP_URL } from "@/shared/config/constants";
 
 export function FormBuilderHeader() {
-  const router = useRouter();
   const { currentForm, isSaving, updateCurrentForm } = useFormStore();
   const { admin } = useAuthStore();
-  const logoutMutation = useLogout();
-  const updateFormMutation = useUpdateForm();
   const publishMutation = usePublishForm();
 
-  const [title, setTitle] = useState(currentForm?.title || "");
   const [showShareModal, setShowShareModal] = useState(false);
   const [showPublishSuccessModal, setShowPublishSuccessModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Sync title with form
-  useEffect(() => {
-    if (currentForm?.title) {
-      setTitle(currentForm.title);
-    }
-  }, [currentForm?.title]);
-
-  // Debounced auto-save for title
-  useEffect(() => {
-    if (!currentForm || title === currentForm.title) return;
-
-    const timeoutId = setTimeout(() => {
-      updateCurrentForm({ title });
-      updateFormMutation.mutate({
-        id: currentForm.id,
-        input: {
-          title,
-          description: currentForm.description,
-          questions: currentForm.questions,
-          settings: currentForm.settings,
-        },
-      });
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-  }, [title]);
+  const handleTitleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      updateCurrentForm({ title: e.target.value });
+    },
+    [updateCurrentForm],
+  );
 
   const handlePublish = () => {
     if (!currentForm) return;
@@ -102,10 +77,10 @@ export function FormBuilderHeader() {
               </div>
               <div className="h-6 w-px bg-gray-200 hidden sm:block" />
               <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                value={currentForm?.title || ""}
+                onChange={handleTitleChange}
                 placeholder="Untitled Form"
-                className="text-base sm:text-lg font-medium border-none hover:bg-gray-50 focus:bg-gray-50 min-w-0 w-full max-w-[200px] sm:max-w-[300px]"
+                className="text-base sm:text-lg font-medium border-none hover:bg-gray-50 focus:bg-gray-50 min-w-0 w-full max-w-[300px] sm:max-w-[400px]"
               />
               {/* Save indicator - Desktop */}
               <div className="hidden sm:flex items-center gap-2 text-body-sm">
