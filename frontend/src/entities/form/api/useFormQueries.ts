@@ -75,6 +75,7 @@ export function useCreateForm() {
 export function useUpdateForm() {
   const queryClient = useQueryClient();
   const setSaving = useFormStore((state) => state.setSaving);
+  const setCurrentForm = useFormStore((state) => state.setCurrentForm);
 
   return useMutation({
     mutationFn: ({ id, input }: { id: string; input: UpdateFormInput }) =>
@@ -85,6 +86,7 @@ export function useUpdateForm() {
     onSuccess: (form) => {
       queryClient.setQueryData(formKeys.detail(form.id), form);
       queryClient.invalidateQueries({ queryKey: formKeys.lists() });
+      setCurrentForm(form);
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to save changes");

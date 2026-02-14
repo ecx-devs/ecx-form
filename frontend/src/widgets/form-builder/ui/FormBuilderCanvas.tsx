@@ -53,7 +53,7 @@ export function FormBuilderCanvas() {
     }, 2000);
 
     return () => clearTimeout(timeoutId);
-  }, [currentForm?.questions, currentForm?.settings]);
+  }, [currentForm?.title, currentForm?.description, currentForm?.questions, currentForm?.settings]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
