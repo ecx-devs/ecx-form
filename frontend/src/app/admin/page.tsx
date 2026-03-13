@@ -2,13 +2,18 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useFormList } from "@/entities/form";
+import { useFormList, useDeleteForm } from "@/entities/form";
 import { FormCard, EmptyFormList } from "@/widgets/form-list";
 import { Navbar } from "@/widgets/layout";
 import { Button, IconPlus, SkeletonFormGrid } from "@/shared/ui";
 
 export default function AdminDashboardPage() {
   const { data: forms, isLoading, error } = useFormList();
+  const deleteMutation = useDeleteForm();
+
+  const handleRemove = (formId: string) => {
+    deleteMutation.mutate(formId);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -76,7 +81,7 @@ export default function AdminDashboardPage() {
 
               {/* Form Cards */}
               {forms?.map((form) => (
-                <FormCard key={form.id} form={form} />
+                <FormCard key={form.id} form={form} onRemove={handleRemove} />
               ))}
 
               {/* Empty State */}

@@ -15,6 +15,7 @@ interface FormRow {
   status: FormStatus;
   created_at: string;
   updated_at: string;
+  deleted_at: string | null;
 }
 
 export class SupabaseFormRepository implements IFormRepository {
@@ -70,6 +71,7 @@ export class SupabaseFormRepository implements IFormRepository {
     const { data, error } = await this.supabase
       .from(TABLES.FORMS)
       .select('*')
+      .is('deleted_at', null)
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -108,7 +110,7 @@ export class SupabaseFormRepository implements IFormRepository {
   async delete(id: FormId): Promise<void> {
     const { error } = await this.supabase
       .from(TABLES.FORMS)
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id.value);
 
     if (error) {

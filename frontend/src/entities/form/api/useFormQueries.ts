@@ -126,7 +126,7 @@ export function useDeleteForm() {
     onSuccess: (_, id) => {
       queryClient.removeQueries({ queryKey: formKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: formKeys.lists() });
-      toast.success("Form deleted successfully");
+      toast.success("Form removed successfully");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to delete form");
