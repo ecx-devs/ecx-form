@@ -24,7 +24,7 @@ export class SupabaseFormRepository implements IFormRepository {
   async create(form: Form): Promise<Form> {
     const json = form.toJSON();
     
-    const row: Omit<FormRow, 'created_at' | 'updated_at'> & { created_at?: string; updated_at?: string } = {
+    const row: Omit<FormRow, 'created_at' | 'updated_at' | 'deleted_at'> & { created_at?: string; updated_at?: string } = {
       id: json.id,
       title: json.title,
       description: json.description || null,
