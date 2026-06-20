@@ -113,7 +113,7 @@ class ApiClient {
     return response.data.data as T;
   }
 
-  // For downloading files (CSV/JSON export)
+  // For downloading files (Excel/JSON export)
   async download(url: string, config?: AxiosRequestConfig): Promise<Blob> {
     const token = getAuthToken();
     const response = await this.client.get(url, {

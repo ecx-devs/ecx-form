@@ -15,7 +15,7 @@ ECX Forms is a proprietary data collection platform designed to replace Google F
 - Form creation and management
 - Multiple question types support
 - Public form submission (no login required)
-- Response export (CSV/JSON)
+- Response export (Excel/JSON)
 - File upload support (max 2MB)
 
 ### ID System

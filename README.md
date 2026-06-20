@@ -17,7 +17,7 @@ ECX Forms is a proprietary data collection platform designed to replace Google F
 - **Multiple Question Types** - Short text, long text, numbers, multiple choice, checkboxes, dropdown, file upload
 - **Auto-Save** - Changes are saved automatically, no save button needed
 - **No Login Required** - Frictionless submission for respondents
-- **Response Management** - View, filter, and export submissions to CSV/JSON
+- **Response Management** - View, filter, and export submissions to Excel/JSON
 - **Mobile Responsive** - Optimized for all screen sizes
 - **ECX Branding** - Consistent with ECX brand identity
 
@@ -149,7 +149,7 @@ ECX Forms uses session-based authentication for admin access. Public form submis
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/v1/forms/:id/submissions` | List responses |
-| GET | `/api/v1/forms/:id/export?format=csv` | Export data |
+| GET | `/api/v1/forms/:id/export?format=xlsx` | Export data |
 
 ### File Upload
 
