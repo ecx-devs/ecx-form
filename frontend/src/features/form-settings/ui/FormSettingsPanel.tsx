@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useFormStore, useUpdateForm } from "@/entities/form";
-import { Card, Toggle, TextArea } from "@/shared/ui";
+import { submissionApi } from "@/entities/submission";
+import { Button, Card, Input, Toggle, TextArea } from "@/shared/ui";
+import toast from "react-hot-toast";
 
 export function FormSettingsPanel() {
   const { currentForm, updateSettings } = useFormStore();
   const updateFormMutation = useUpdateForm();
   const isFirstRender = useRef(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingHeader, setIsUploadingHeader] = useState(false);
 
   // Auto-save settings when they change
   useEffect(() => {
@@ -34,6 +38,38 @@ export function FormSettingsPanel() {
   if (!currentForm) return null;
 
   const { settings } = currentForm;
+
+  const handleHeaderImageUpload = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+
+    setIsUploadingHeader(true);
+
+    try {
+      const upload = await submissionApi.getSignedUploadUrl(
+        currentForm.id,
+        file.name,
+        file.type,
+        file.size,
+      );
+      await submissionApi.uploadFile(upload.signedUrl, file);
+      const url = await submissionApi.getFileUrl(upload.path);
+      updateSettings({ headerImageUrl: url });
+      toast.success("Header image uploaded");
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to upload header image");
+    } finally {
+      setIsUploadingHeader(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -88,7 +124,70 @@ export function FormSettingsPanel() {
           Presentation
         </h3>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
+          <div>
+            <p className="text-body-sm font-medium text-ecx-gray mb-2">
+              Header image
+            </p>
+            {settings.headerImageUrl && (
+              <div className="mb-3 overflow-hidden rounded-lg border border-gray-200">
+                <img
+                  src={settings.headerImageUrl}
+                  alt=""
+                  className="h-32 w-full object-cover"
+                />
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleHeaderImageUpload}
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                isLoading={isUploadingHeader}
+              >
+                {settings.headerImageUrl ? "Change image" : "Upload image"}
+              </Button>
+              {settings.headerImageUrl && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => updateSettings({ headerImageUrl: null })}
+                >
+                  Remove
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-body-sm font-medium text-ecx-gray mb-2">
+              Theme color
+            </p>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={settings.themeColor}
+                onChange={(event) =>
+                  updateSettings({ themeColor: event.target.value })
+                }
+                className="h-10 w-12 cursor-pointer rounded border border-gray-300 bg-white p-1"
+              />
+              <Input
+                value={settings.themeColor}
+                className="max-w-32 font-mono"
+                maxLength={7}
+                readOnly
+              />
+            </div>
+          </div>
+
           <Toggle
             label="Show progress bar"
             description="Display a progress bar at the top of the form"

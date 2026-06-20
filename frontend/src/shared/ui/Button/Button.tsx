@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, ReactNode } from 'react';
+import { CSSProperties, forwardRef, ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '../../lib/cn';
 
@@ -17,6 +17,7 @@ interface ButtonProps {
   disabled?: boolean;
   children?: ReactNode;
   className?: string;
+  style?: CSSProperties;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
 }
@@ -39,6 +40,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
+      style,
       variant = 'primary',
       size = 'md',
       isLoading = false,
@@ -67,6 +69,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           fullWidth && 'w-full',
           className
         )}
+        style={style}
         disabled={disabled || isLoading}
         onClick={onClick}
       >

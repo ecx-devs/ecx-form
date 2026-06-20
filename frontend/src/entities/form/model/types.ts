@@ -9,6 +9,8 @@ export interface FormSettings {
   showProgressBar: boolean;
   shuffleQuestions: boolean;
   acceptingResponses: boolean;
+  themeColor: string;
+  headerImageUrl?: string | null;
 }
 
 export interface Form {
@@ -42,6 +44,8 @@ export interface PublicForm {
     limitToOneResponse: boolean;
     allowResponseEditing: boolean;
     showProgressBar: boolean;
+    themeColor: string;
+    headerImageUrl?: string | null;
   };
 }
 
@@ -64,4 +68,6 @@ export const DEFAULT_FORM_SETTINGS: FormSettings = {
   showProgressBar: true,
   shuffleQuestions: false,
   acceptingResponses: true,
+  themeColor: "#2699e3",
+  headerImageUrl: undefined,
 };

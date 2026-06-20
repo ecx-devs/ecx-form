@@ -62,6 +62,12 @@ export function PublicFormRenderer({
   const currentPage =
     formPages[Math.min(currentPageIndex, formPages.length - 1)] || formPages[0];
   const isLastPage = currentPageIndex === formPages.length - 1;
+  const themeColor = form.settings.themeColor || "#2699e3";
+  const pageBackground = createTintedBackground(themeColor);
+  const themedPrimaryButtonStyle = {
+    backgroundColor: themeColor,
+    borderColor: themeColor,
+  };
 
   useEffect(() => {
     setCurrentPageIndex(0);
@@ -200,12 +206,16 @@ export function PublicFormRenderer({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-ecx-blue-50 to-white py-8 px-4">
+    <div
+      className="min-h-screen py-8 px-4"
+      style={{ background: pageBackground }}
+    >
       {/* Progress Bar */}
       {form.settings.showProgressBar && (
         <div className="fixed top-0 left-0 right-0 h-1 bg-gray-200 z-50">
           <motion.div
-            className="h-full bg-ecx-blue"
+            className="h-full"
+            style={{ backgroundColor: themeColor }}
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.3 }}
@@ -216,7 +226,17 @@ export function PublicFormRenderer({
       <div className="max-w-2xl mx-auto">
         {/* Form Header */}
         {currentPageIndex === 0 && (
-          <Card className="mb-4 border-t-8 border-t-ecx-blue">
+          <Card
+            className="mb-4 overflow-hidden border-t-8"
+            style={{ borderTopColor: themeColor }}
+          >
+            {form.settings.headerImageUrl && (
+              <img
+                src={form.settings.headerImageUrl}
+                alt=""
+                className="-mx-6 -mt-6 mb-6 h-48 w-[calc(100%+3rem)] object-cover"
+              />
+            )}
             <h1 className="text-heading-2 font-varela text-ecx-black mb-2">
               {form.title}
             </h1>
@@ -230,7 +250,11 @@ export function PublicFormRenderer({
         {/* Questions */}
         <div className="space-y-4">
           {currentPage?.section && (
-            <SectionBreak section={currentPage.section} index={0} />
+            <SectionBreak
+              section={currentPage.section}
+              index={0}
+              themeColor={themeColor}
+            />
           )}
           {currentPage?.questions.map((question, index) => (
             <QuestionField
@@ -259,11 +283,17 @@ export function PublicFormRenderer({
                 size="lg"
                 onClick={handleSubmit}
                 isLoading={submitMutation.isPending}
+                style={themedPrimaryButtonStyle}
               >
                 Submit
               </Button>
             ) : (
-              <Button variant="primary" size="lg" onClick={handleContinue}>
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleContinue}
+                style={themedPrimaryButtonStyle}
+              >
                 Continue
               </Button>
             )}
@@ -302,9 +332,11 @@ function buildFormPages(questions: Question[]): FormPage[] {
 function SectionBreak({
   section,
   index,
+  themeColor,
 }: {
   section: Question;
   index: number;
+  themeColor: string;
 }) {
   return (
     <motion.section
@@ -313,7 +345,7 @@ function SectionBreak({
       transition={{ delay: index * 0.05 }}
       className="pt-4"
     >
-      <Card className="border-t-4 border-t-ecx-blue bg-white">
+      <Card className="border-t-4 bg-white" style={{ borderTopColor: themeColor }}>
         <h2 className="text-heading-3 font-varela text-ecx-black">
           {section.title}
         </h2>
@@ -325,6 +357,24 @@ function SectionBreak({
       </Card>
     </motion.section>
   );
+}
+
+function createTintedBackground(hexColor: string): string {
+  const rgb = hexToRgb(hexColor);
+  if (!rgb) return "linear-gradient(to bottom, #eaf6fd, #ffffff)";
+
+  return `linear-gradient(to bottom, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.14), #ffffff)`;
+}
+
+function hexToRgb(hexColor: string): { r: number; g: number; b: number } | null {
+  const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexColor);
+  if (!match) return null;
+
+  return {
+    r: parseInt(match[1], 16),
+    g: parseInt(match[2], 16),
+    b: parseInt(match[3], 16),
+  };
 }
 
 // Question Field Component

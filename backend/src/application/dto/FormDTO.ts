@@ -51,6 +51,8 @@ export interface PublicFormDTO {
     limitToOneResponse: boolean;
     allowResponseEditing: boolean;
     showProgressBar: boolean;
+    themeColor: string;
+    headerImageUrl?: string | null;
   };
 }
 

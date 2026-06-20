@@ -29,6 +29,8 @@ export class GetPublicFormUseCase {
         limitToOneResponse: json.settings.limitToOneResponse,
         allowResponseEditing: json.settings.allowResponseEditing,
         showProgressBar: json.settings.showProgressBar,
+        themeColor: json.settings.themeColor,
+        headerImageUrl: json.settings.headerImageUrl,
       },
     };
   }

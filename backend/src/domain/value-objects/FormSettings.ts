@@ -5,6 +5,8 @@ export interface FormSettingsProps {
   showProgressBar: boolean;
   shuffleQuestions: boolean;
   acceptingResponses: boolean;
+  themeColor: string;
+  headerImageUrl?: string | null;
 }
 
 export class FormSettings {
@@ -14,6 +16,8 @@ export class FormSettings {
   readonly showProgressBar: boolean;
   readonly shuffleQuestions: boolean;
   readonly acceptingResponses: boolean;
+  readonly themeColor: string;
+  readonly headerImageUrl?: string;
 
   private constructor(props: FormSettingsProps) {
     this.limitToOneResponse = props.limitToOneResponse;
@@ -22,6 +26,8 @@ export class FormSettings {
     this.showProgressBar = props.showProgressBar;
     this.shuffleQuestions = props.shuffleQuestions;
     this.acceptingResponses = props.acceptingResponses;
+    this.themeColor = props.themeColor;
+    this.headerImageUrl = props.headerImageUrl ?? undefined;
   }
 
   static default(): FormSettings {
@@ -32,6 +38,8 @@ export class FormSettings {
       showProgressBar: true,
       shuffleQuestions: false,
       acceptingResponses: true,
+      themeColor: "#2699e3",
+      headerImageUrl: undefined,
     });
   }
 
@@ -48,12 +56,14 @@ export class FormSettings {
       shuffleQuestions: props.shuffleQuestions ?? defaults.shuffleQuestions,
       acceptingResponses:
         props.acceptingResponses ?? defaults.acceptingResponses,
+      themeColor: props.themeColor ?? defaults.themeColor,
+      headerImageUrl: props.headerImageUrl ?? defaults.headerImageUrl,
     });
   }
 
   static merge(
     current: FormSettings,
-    updates: Partial<FormSettings>,
+    updates: Partial<FormSettingsProps>,
   ): FormSettings {
     return new FormSettings({
       limitToOneResponse:
@@ -66,6 +76,11 @@ export class FormSettings {
       shuffleQuestions: updates.shuffleQuestions ?? current.shuffleQuestions,
       acceptingResponses:
         updates.acceptingResponses ?? current.acceptingResponses,
+      themeColor: updates.themeColor ?? current.themeColor,
+      headerImageUrl:
+        updates.headerImageUrl === null
+          ? undefined
+          : updates.headerImageUrl ?? current.headerImageUrl,
     });
   }
 
@@ -77,6 +92,8 @@ export class FormSettings {
       showProgressBar: this.showProgressBar,
       shuffleQuestions: this.shuffleQuestions,
       acceptingResponses: this.acceptingResponses,
+      themeColor: this.themeColor,
+      headerImageUrl: this.headerImageUrl,
     };
   }
 }

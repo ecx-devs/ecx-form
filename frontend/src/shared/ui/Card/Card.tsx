@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, ReactNode, HTMLAttributes } from 'react';
+import { CSSProperties, forwardRef, ReactNode, HTMLAttributes } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '../../lib/cn';
 
@@ -11,6 +11,7 @@ interface CardProps {
   animate?: boolean;
   children?: ReactNode;
   className?: string;
+  style?: CSSProperties;
   onClick?: () => void;
 }
 
@@ -36,6 +37,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       hover = false,
       animate = true,
       children,
+      style,
       onClick,
     },
     ref
@@ -60,6 +62,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
           hover && 'cursor-pointer',
           className
         )}
+        style={style}
         onClick={onClick}
         {...animationProps}
       >

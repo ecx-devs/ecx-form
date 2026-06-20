@@ -53,6 +53,8 @@ export default function FormPreviewPage() {
       limitToOneResponse: form.settings.limitToOneResponse,
       allowResponseEditing: form.settings.allowResponseEditing,
       showProgressBar: form.settings.showProgressBar,
+      themeColor: form.settings.themeColor,
+      headerImageUrl: form.settings.headerImageUrl,
     },
   };
 

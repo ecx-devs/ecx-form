@@ -99,6 +99,11 @@ export const updateFormSchema = z.object({
         confirmationMessage: z.string().max(500).optional(),
         showProgressBar: z.boolean().optional(),
         shuffleQuestions: z.boolean().optional(),
+        themeColor: z
+          .string()
+          .regex(/^#[0-9a-fA-F]{6}$/, "Theme color must be a hex color")
+          .optional(),
+        headerImageUrl: z.string().url().max(1000).nullable().optional(),
       })
       .optional(),
   }),

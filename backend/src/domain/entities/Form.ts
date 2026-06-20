@@ -1,5 +1,5 @@
 import { Question } from './Question';
-import { FormSettings } from '../value-objects/FormSettings';
+import { FormSettings, FormSettingsProps } from '../value-objects/FormSettings';
 import { FormId } from '../value-objects/FormId';
 
 export type FormStatus = 'draft' | 'published';
@@ -156,7 +156,7 @@ export class Form {
     return duplicated;
   }
 
-  updateSettings(settings: Partial<FormSettings>): void {
+  updateSettings(settings: Partial<FormSettingsProps>): void {
     this._settings = FormSettings.merge(this._settings, settings);
     this._updatedAt = new Date();
   }
