@@ -55,6 +55,7 @@ export default function FormPreviewPage() {
       showProgressBar: form.settings.showProgressBar,
       themeColor: form.settings.themeColor,
       headerImageUrl: form.settings.headerImageUrl,
+      headerImagePosition: form.settings.headerImagePosition,
     },
   };
 

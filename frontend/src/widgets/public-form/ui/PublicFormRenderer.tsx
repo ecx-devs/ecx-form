@@ -235,6 +235,10 @@ export function PublicFormRenderer({
                 src={form.settings.headerImageUrl}
                 alt=""
                 className="-mx-6 -mt-6 mb-6 h-48 w-[calc(100%+3rem)] object-cover"
+                style={{
+                  objectPosition:
+                    form.settings.headerImagePosition || "center center",
+                }}
               />
             )}
             <h1 className="text-heading-2 font-varela text-ecx-black mb-2">

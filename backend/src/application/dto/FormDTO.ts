@@ -53,6 +53,7 @@ export interface PublicFormDTO {
     showProgressBar: boolean;
     themeColor: string;
     headerImageUrl?: string | null;
+    headerImagePosition: string;
   };
 }
 

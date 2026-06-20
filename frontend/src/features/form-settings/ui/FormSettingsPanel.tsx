@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { HeaderImagePosition } from "@/entities/form";
 import { useFormStore, useUpdateForm } from "@/entities/form";
 import { submissionApi } from "@/entities/submission";
 import { Button, Card, Input, Toggle, TextArea } from "@/shared/ui";
@@ -38,6 +39,9 @@ export function FormSettingsPanel() {
   if (!currentForm) return null;
 
   const { settings } = currentForm;
+  const [horizontalPosition, verticalPosition] = (
+    settings.headerImagePosition || "center center"
+  ).split(" ") as [HeaderImagePositionPart, HeaderImagePositionPart];
 
   const handleHeaderImageUpload = async (
     event: ChangeEvent<HTMLInputElement>,
@@ -62,7 +66,10 @@ export function FormSettingsPanel() {
       );
       await submissionApi.uploadFile(upload.signedUrl, file);
       const url = await submissionApi.getFileUrl(upload.path);
-      updateSettings({ headerImageUrl: url });
+      updateSettings({
+        headerImageUrl: url,
+        headerImagePosition: settings.headerImagePosition || "center center",
+      });
       toast.success("Header image uploaded");
     } catch (error: any) {
       toast.error(error?.message || "Failed to upload header image");
@@ -135,6 +142,10 @@ export function FormSettingsPanel() {
                   src={settings.headerImageUrl}
                   alt=""
                   className="h-32 w-full object-cover"
+                  style={{
+                    objectPosition:
+                      settings.headerImagePosition || "center center",
+                  }}
                 />
               </div>
             )}
@@ -164,6 +175,33 @@ export function FormSettingsPanel() {
                 </Button>
               )}
             </div>
+
+            {settings.headerImageUrl && (
+              <div className="mt-4 space-y-3">
+                <CropPositionControl
+                  label="Horizontal focus"
+                  options={["left", "center", "right"]}
+                  value={horizontalPosition}
+                  onChange={(value) =>
+                    updateSettings({
+                      headerImagePosition:
+                        `${value} ${verticalPosition}` as HeaderImagePosition,
+                    })
+                  }
+                />
+                <CropPositionControl
+                  label="Vertical focus"
+                  options={["top", "center", "bottom"]}
+                  value={verticalPosition}
+                  onChange={(value) =>
+                    updateSettings({
+                      headerImagePosition:
+                        `${horizontalPosition} ${value}` as HeaderImagePosition,
+                    })
+                  }
+                />
+              </div>
+            )}
           </div>
 
           <div>
@@ -223,6 +261,42 @@ export function FormSettingsPanel() {
           showCount
         />
       </Card>
+    </div>
+  );
+}
+
+type HeaderImagePositionPart = "left" | "center" | "right" | "top" | "bottom";
+
+function CropPositionControl({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: HeaderImagePositionPart[];
+  value: HeaderImagePositionPart;
+  onChange: (value: HeaderImagePositionPart) => void;
+}) {
+  return (
+    <div>
+      <p className="text-caption font-medium text-gray-500 mb-1">{label}</p>
+      <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+        {options.map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onChange(option)}
+            className={
+              option === value
+                ? "rounded-md bg-white px-3 py-1.5 text-body-sm font-medium text-ecx-blue shadow-sm"
+                : "rounded-md px-3 py-1.5 text-body-sm font-medium text-gray-500 hover:text-ecx-gray"
+            }
+          >
+            {option[0].toUpperCase() + option.slice(1)}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

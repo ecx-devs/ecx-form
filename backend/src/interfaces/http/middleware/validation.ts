@@ -99,11 +99,25 @@ export const updateFormSchema = z.object({
         confirmationMessage: z.string().max(500).optional(),
         showProgressBar: z.boolean().optional(),
         shuffleQuestions: z.boolean().optional(),
+        acceptingResponses: z.boolean().optional(),
         themeColor: z
           .string()
           .regex(/^#[0-9a-fA-F]{6}$/, "Theme color must be a hex color")
           .optional(),
         headerImageUrl: z.string().url().max(1000).nullable().optional(),
+        headerImagePosition: z
+          .enum([
+            "left top",
+            "left center",
+            "left bottom",
+            "center top",
+            "center center",
+            "center bottom",
+            "right top",
+            "right center",
+            "right bottom",
+          ])
+          .optional(),
       })
       .optional(),
   }),

@@ -7,6 +7,7 @@ export interface FormSettingsProps {
   acceptingResponses: boolean;
   themeColor: string;
   headerImageUrl?: string | null;
+  headerImagePosition: string;
 }
 
 export class FormSettings {
@@ -18,6 +19,7 @@ export class FormSettings {
   readonly acceptingResponses: boolean;
   readonly themeColor: string;
   readonly headerImageUrl?: string;
+  readonly headerImagePosition: string;
 
   private constructor(props: FormSettingsProps) {
     this.limitToOneResponse = props.limitToOneResponse;
@@ -28,6 +30,7 @@ export class FormSettings {
     this.acceptingResponses = props.acceptingResponses;
     this.themeColor = props.themeColor;
     this.headerImageUrl = props.headerImageUrl ?? undefined;
+    this.headerImagePosition = props.headerImagePosition;
   }
 
   static default(): FormSettings {
@@ -40,6 +43,7 @@ export class FormSettings {
       acceptingResponses: true,
       themeColor: "#2699e3",
       headerImageUrl: undefined,
+      headerImagePosition: "center center",
     });
   }
 
@@ -58,6 +62,8 @@ export class FormSettings {
         props.acceptingResponses ?? defaults.acceptingResponses,
       themeColor: props.themeColor ?? defaults.themeColor,
       headerImageUrl: props.headerImageUrl ?? defaults.headerImageUrl,
+      headerImagePosition:
+        props.headerImagePosition ?? defaults.headerImagePosition,
     });
   }
 
@@ -81,6 +87,8 @@ export class FormSettings {
         updates.headerImageUrl === null
           ? undefined
           : updates.headerImageUrl ?? current.headerImageUrl,
+      headerImagePosition:
+        updates.headerImagePosition ?? current.headerImagePosition,
     });
   }
 
@@ -94,6 +102,7 @@ export class FormSettings {
       acceptingResponses: this.acceptingResponses,
       themeColor: this.themeColor,
       headerImageUrl: this.headerImageUrl,
+      headerImagePosition: this.headerImagePosition,
     };
   }
 }

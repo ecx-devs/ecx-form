@@ -11,7 +11,19 @@ export interface FormSettings {
   acceptingResponses: boolean;
   themeColor: string;
   headerImageUrl?: string | null;
+  headerImagePosition: HeaderImagePosition;
 }
+
+export type HeaderImagePosition =
+  | "left top"
+  | "left center"
+  | "left bottom"
+  | "center top"
+  | "center center"
+  | "center bottom"
+  | "right top"
+  | "right center"
+  | "right bottom";
 
 export interface Form {
   id: string;
@@ -46,6 +58,7 @@ export interface PublicForm {
     showProgressBar: boolean;
     themeColor: string;
     headerImageUrl?: string | null;
+    headerImagePosition: HeaderImagePosition;
   };
 }
 
@@ -70,4 +83,5 @@ export const DEFAULT_FORM_SETTINGS: FormSettings = {
   acceptingResponses: true,
   themeColor: "#2699e3",
   headerImageUrl: undefined,
+  headerImagePosition: "center center",
 };

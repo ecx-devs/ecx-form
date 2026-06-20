@@ -31,6 +31,7 @@ export class GetPublicFormUseCase {
         showProgressBar: json.settings.showProgressBar,
         themeColor: json.settings.themeColor,
         headerImageUrl: json.settings.headerImageUrl,
+        headerImagePosition: json.settings.headerImagePosition,
       },
     };
   }
