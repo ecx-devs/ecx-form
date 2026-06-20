@@ -1,4 +1,5 @@
 export type QuestionType =
+  | 'section'
   | 'short_text'
   | 'long_text'
   | 'number'
@@ -55,6 +56,14 @@ export const QUESTION_TYPE_CONFIG: Record<
     hasFileConfig: boolean;
   }
 > = {
+  section: {
+    label: 'Section',
+    description: 'Group questions under a heading',
+    icon: 'section',
+    defaultTitle: 'Untitled section',
+    hasOptions: false,
+    hasFileConfig: false,
+  },
   short_text: {
     label: 'Short answer',
     description: 'Single line text input',

@@ -23,10 +23,12 @@ export function ResponsesTable({
   isExporting,
 }: ResponsesTableProps) {
   const columns = useMemo(() => {
+    const answerableQuestions = questions.filter((q) => q.type !== "section");
+
     return [
       { id: "id", label: "Submission ID", width: 160 },
       { id: "submittedAt", label: "Submitted", width: 160 },
-      ...questions.map((q) => ({
+      ...answerableQuestions.map((q) => ({
         id: q.id,
         label: q.title,
         width: 200,

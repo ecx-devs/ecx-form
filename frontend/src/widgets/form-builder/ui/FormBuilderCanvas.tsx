@@ -50,7 +50,7 @@ export function FormBuilderCanvas() {
           settings: currentForm.settings,
         },
       });
-    }, 2000);
+    }, 5000);
 
     return () => clearTimeout(timeoutId);
   }, [currentForm?.title, currentForm?.description, currentForm?.questions, currentForm?.settings]);

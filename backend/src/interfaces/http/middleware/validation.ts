@@ -54,6 +54,7 @@ export const updateFormSchema = z.object({
         z.object({
           id: z.string(),
           type: z.enum([
+            "section",
             "short_text",
             "long_text",
             "number",

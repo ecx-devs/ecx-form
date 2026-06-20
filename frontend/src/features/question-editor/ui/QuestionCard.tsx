@@ -54,6 +54,7 @@ export function QuestionCard({
   };
 
   const config = QUESTION_TYPE_CONFIG[question.type];
+  const isSection = question.type === "section";
 
   const handleTypeChange = (newType: string) => {
     const newConfig = QUESTION_TYPE_CONFIG[newType as QuestionType];
@@ -134,6 +135,84 @@ export function QuestionCard({
         .map((opt, index) => ({ ...opt, order: index })),
     });
   };
+
+  if (isSection) {
+    return (
+      <motion.div
+        ref={setNodeRef}
+        style={style}
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: isDragging ? 0.5 : 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className={cn("group relative", isDragging && "z-50")}
+      >
+        <Card
+          variant={isActive ? "elevated" : "default"}
+          padding="none"
+          animate={false}
+          className={cn(
+            "transition-all duration-200 cursor-pointer border-t-4 border-t-ecx-blue",
+            isActive && "ring-2 ring-ecx-blue",
+          )}
+          onClick={onSelect}
+        >
+          <div
+            className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+            {...attributes}
+            {...listeners}
+          >
+            <IconGripVertical size={16} className="text-gray-400" />
+          </div>
+
+          <div className="p-6 pl-8">
+            <div className="mb-4">
+              <Input
+                value={question.title}
+                onChange={(e) => handleTitleChange(e.target.value)}
+                placeholder="Section title"
+                className="text-xl font-varela border-b-2 border-transparent hover:border-gray-200 focus:border-ecx-blue rounded-none px-0"
+              />
+              <TextArea
+                value={question.description || ""}
+                onChange={(e) =>
+                  updateQuestion(question.id, { description: e.target.value })
+                }
+                placeholder="Section description (optional)"
+                className="mt-2 border-none px-0 resize-none min-h-[52px] text-body-sm text-gray-500"
+              />
+            </div>
+
+            <div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
+              <p className="text-body-sm font-medium text-gray-500">Section</p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    duplicateQuestion(question.id);
+                  }}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Duplicate"
+                >
+                  <IconCopy size={18} />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeQuestion(question.id);
+                  }}
+                  className="p-2 text-gray-400 hover:text-ecx-red hover:bg-red-50 rounded-lg transition-colors"
+                  title="Delete"
+                >
+                  <IconTrash size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

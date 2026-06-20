@@ -79,7 +79,9 @@ export class SubmitFormUseCase {
     questions: Question[],
     answers: CreateSubmissionDTO["answers"],
   ): void {
-    const requiredQuestions = questions.filter((q: Question) => q.required);
+    const requiredQuestions = questions.filter(
+      (q: Question) => q.type !== "section" && q.required,
+    );
 
     for (const question of requiredQuestions) {
       const answer = answers.find((a) => a.questionId === question.id);

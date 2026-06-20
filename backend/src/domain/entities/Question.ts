@@ -1,4 +1,5 @@
 export type QuestionType =
+  | 'section'
   | 'short_text'
   | 'long_text'
   | 'number'

@@ -162,7 +162,7 @@ export class Form {
   }
 
   publish(): void {
-    if (this._questions.length === 0) {
+    if (!this._questions.some((question) => question.type !== 'section')) {
       throw new Error('Cannot publish a form without questions');
     }
     this._status = 'published';

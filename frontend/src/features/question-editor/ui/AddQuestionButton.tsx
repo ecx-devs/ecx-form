@@ -13,10 +13,12 @@ import {
   IconCheckbox,
   IconDropdown,
   IconFile,
+  IconSection,
 } from '@/shared/ui';
 import { cn } from '@/shared/lib';
 
 const QUESTION_TYPE_ICONS: Record<QuestionType, React.ComponentType<{ size?: number; className?: string }>> = {
+  section: IconSection,
   short_text: IconShortText,
   long_text: IconLongText,
   number: IconNumber,
@@ -55,7 +57,7 @@ export function AddQuestionButton({ className }: AddQuestionButtonProps) {
         )}
       >
         <IconPlus size={20} />
-        <span className="font-medium">Add question</span>
+        <span className="font-medium">Add item</span>
       </motion.button>
 
       <AnimatePresence>
@@ -79,7 +81,7 @@ export function AddQuestionButton({ className }: AddQuestionButtonProps) {
             >
               <div className="p-2">
                 <p className="px-3 py-2 text-body-sm font-medium text-gray-500">
-                  Question types
+                  Form items
                 </p>
                 <div className="grid grid-cols-2 gap-1">
                   {Object.entries(QUESTION_TYPE_CONFIG).map(([type, config]) => {

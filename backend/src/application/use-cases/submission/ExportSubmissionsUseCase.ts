@@ -30,7 +30,7 @@ export class ExportSubmissionsUseCase {
     }
 
     const submissions = await this.submissionRepository.findByFormId(formId);
-    const questions = form.questions;
+    const questions = form.questions.filter((q) => q.type !== "section");
 
     if (format === "json") {
       return this.exportAsJson(formId, form.title, questions, submissions);

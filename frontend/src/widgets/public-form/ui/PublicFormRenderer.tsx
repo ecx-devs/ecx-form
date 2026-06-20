@@ -48,6 +48,9 @@ export function PublicFormRenderer({
   } | null>(null);
 
   const submitMutation = useSubmitForm(form.id);
+  const answerableQuestions = form.questions.filter(
+    (question) => question.type !== "section",
+  );
 
   // Check if already submitted (skip in preview mode)
   useEffect(() => {
@@ -97,7 +100,7 @@ export function PublicFormRenderer({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    form.questions.forEach((question) => {
+    answerableQuestions.forEach((question) => {
       const value = answers[question.id];
       const validation = validateField(
         value,
@@ -142,12 +145,17 @@ export function PublicFormRenderer({
   };
 
   // Calculate progress
-  const progress = form.settings.showProgressBar
+  const progress = form.settings.showProgressBar && answerableQuestions.length > 0
     ? (Object.keys(answers).filter((k) => {
         const v = answers[k];
-        return v !== null && v !== "" && (!Array.isArray(v) || v.length > 0);
+        return (
+          answerableQuestions.some((question) => question.id === k) &&
+          v !== null &&
+          v !== "" &&
+          (!Array.isArray(v) || v.length > 0)
+        );
       }).length /
-        form.questions.length) *
+        answerableQuestions.length) *
       100
     : 0;
 
@@ -188,17 +196,21 @@ export function PublicFormRenderer({
 
         {/* Questions */}
         <div className="space-y-4">
-          {form.questions.map((question, index) => (
-            <QuestionField
-              key={question.id}
-              question={question}
-              value={answers[question.id]}
-              error={errors[question.id]}
-              onChange={(value) => updateAnswer(question.id, value)}
-              index={index}
-              formId={form.id}
-            />
-          ))}
+          {form.questions.map((question, index) =>
+            question.type === "section" ? (
+              <SectionBreak key={question.id} section={question} index={index} />
+            ) : (
+              <QuestionField
+                key={question.id}
+                question={question}
+                value={answers[question.id]}
+                error={errors[question.id]}
+                onChange={(value) => updateAnswer(question.id, value)}
+                index={index}
+                formId={form.id}
+              />
+            ),
+          )}
         </div>
 
         {/* Submit Button */}
@@ -220,6 +232,34 @@ export function PublicFormRenderer({
         </div>
       </div>
     </div>
+  );
+}
+
+function SectionBreak({
+  section,
+  index,
+}: {
+  section: Question;
+  index: number;
+}) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="pt-4"
+    >
+      <Card className="border-t-4 border-t-ecx-blue bg-white">
+        <h2 className="text-heading-3 font-varela text-ecx-black">
+          {section.title}
+        </h2>
+        {section.description && (
+          <p className="text-body text-gray-600 whitespace-pre-line mt-2">
+            {section.description}
+          </p>
+        )}
+      </Card>
+    </motion.section>
   );
 }
 

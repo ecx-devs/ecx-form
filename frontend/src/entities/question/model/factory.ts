@@ -40,6 +40,10 @@ export function createQuestion(type: QuestionType, order: number): Question {
   return base;
 }
 
+export function createSection(order: number): Question {
+  return createQuestion('section', order);
+}
+
 export function createOption(order: number, value?: string): QuestionOption {
   return {
     id: uuidv4(),
