@@ -133,6 +133,8 @@ export function FormBuilderCanvas() {
           onChange={(e) => updateCurrentForm({ description: e.target.value })}
           placeholder="Form description"
           className="border-none px-0 resize-none min-h-[60px]"
+          maxLength={1500}
+          showCount
         />
       </Card>
 

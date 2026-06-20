@@ -15,7 +15,9 @@ interface ShareModalProps {
 
 export function ShareModal({ isOpen, onClose, formId, formTitle }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
-  const formUrl = `${APP_URL}/${formId}`;
+  const appOrigin =
+    typeof window !== 'undefined' ? window.location.origin : APP_URL;
+  const formUrl = `${appOrigin.replace(/\/$/, '')}/${formId}`;
 
   const handleCopy = async () => {
     try {

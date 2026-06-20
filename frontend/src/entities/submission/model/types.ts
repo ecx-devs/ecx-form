@@ -31,6 +31,12 @@ export interface SubmitSuccessResponse {
   editUrl?: string;
 }
 
+export interface GoogleSheetsExportResponse {
+  spreadsheetId: string;
+  url: string;
+  title: string;
+}
+
 export interface FormAnswers {
   [questionId: string]: string | string[] | null;
 }

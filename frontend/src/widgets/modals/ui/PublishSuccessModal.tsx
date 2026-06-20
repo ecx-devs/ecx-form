@@ -15,7 +15,9 @@ interface PublishSuccessModalProps {
 
 export function PublishSuccessModal({ isOpen, onClose, formId, formTitle }: PublishSuccessModalProps) {
   const [copied, setCopied] = useState(false);
-  const formUrl = `${APP_URL}/${formId}`;
+  const appOrigin =
+    typeof window !== 'undefined' ? window.location.origin : APP_URL;
+  const formUrl = `${appOrigin.replace(/\/$/, '')}/${formId}`;
 
   const handleCopy = async () => {
     try {

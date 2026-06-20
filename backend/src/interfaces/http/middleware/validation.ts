@@ -39,7 +39,7 @@ export function validate(schema: ZodSchema) {
 export const createFormSchema = z.object({
   body: z.object({
     title: z.string().min(1, "Title is required").max(200, "Title is too long"),
-    description: z.string().max(1000, "Description is too long").optional(),
+    description: z.string().max(1500, "Description is too long").optional(),
   }),
   query: z.object({}),
   params: z.object({}),
@@ -48,7 +48,7 @@ export const createFormSchema = z.object({
 export const updateFormSchema = z.object({
   body: z.object({
     title: z.string().min(1).max(200).optional(),
-    description: z.string().max(1000).optional(),
+    description: z.string().max(1500).optional(),
     questions: z
       .array(
         z.object({

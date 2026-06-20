@@ -9,6 +9,7 @@ export const formEndpoints = {
   submissions: (id: string) => `/forms/${id}/submissions`,
   export: (id: string, format: "xlsx" | "json" = "xlsx") =>
     `/forms/${id}/export?format=${format}`,
+  exportGoogleSheets: (id: string) => `/forms/${id}/export/google-sheets`,
 };
 
 // Public Access

@@ -87,7 +87,9 @@ interface ResponsesViewProps {
   questions: Question[];
   isLoading: boolean;
   onExport: (format: "xlsx" | "json") => void;
+  onExportGoogleSheets?: () => void;
   isExporting: boolean;
+  isExportingGoogleSheets?: boolean;
   acceptingResponses?: boolean;
   onToggleAcceptingResponses?: (accepting: boolean) => void;
 }
@@ -99,7 +101,9 @@ export function ResponsesView({
   questions,
   isLoading,
   onExport,
+  onExportGoogleSheets,
   isExporting,
+  isExportingGoogleSheets,
   acceptingResponses = true,
   onToggleAcceptingResponses,
 }: ResponsesViewProps) {
@@ -182,15 +186,28 @@ export function ResponsesView({
         </div>
 
         {totalResponses > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onExport("xlsx")}
-            isLoading={isExporting}
-            leftIcon={<IconDownload size={18} />}
-          >
-            Export to Excel
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onExport("xlsx")}
+              isLoading={isExporting}
+              leftIcon={<IconDownload size={18} />}
+            >
+              Export to Excel
+            </Button>
+            {onExportGoogleSheets && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onExportGoogleSheets}
+                isLoading={isExportingGoogleSheets}
+                leftIcon={<IconDownload size={18} />}
+              >
+                Export to Google Sheets
+              </Button>
+            )}
+          </div>
         )}
       </div>
 

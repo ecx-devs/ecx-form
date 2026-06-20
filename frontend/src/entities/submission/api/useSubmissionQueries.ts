@@ -69,6 +69,20 @@ export function useExportSubmissions() {
   });
 }
 
+export function useExportSubmissionsToGoogleSheets() {
+  return useMutation({
+    mutationFn: ({ formId }: { formId: string }) =>
+      submissionApi.exportToGoogleSheets(formId),
+    onSuccess: (result) => {
+      window.open(result.url, "_blank", "noopener,noreferrer");
+      toast.success("Google Sheet created successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to export to Google Sheets");
+    },
+  });
+}
+
 // File upload mutation
 export function useFileUpload(formId: string) {
   return useMutation({

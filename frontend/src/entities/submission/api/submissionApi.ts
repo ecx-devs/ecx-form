@@ -5,6 +5,7 @@ import {
   uploadEndpoints,
 } from "@/shared/api";
 import {
+  GoogleSheetsExportResponse,
   SubmissionListResponse,
   SubmitFormInput,
   SubmitSuccessResponse,
@@ -42,6 +43,14 @@ export const submissionApi = {
     format: "xlsx" | "json" = "xlsx",
   ): Promise<Blob> {
     return apiClient.download(formEndpoints.export(formId, format));
+  },
+
+  async exportToGoogleSheets(
+    formId: string,
+  ): Promise<GoogleSheetsExportResponse> {
+    return apiClient.get<GoogleSheetsExportResponse>(
+      formEndpoints.exportGoogleSheets(formId),
+    );
   },
 
   // Get signed URL for file upload

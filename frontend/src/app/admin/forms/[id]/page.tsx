@@ -3,7 +3,11 @@
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useForm, useFormStore, useUpdateForm } from "@/entities/form";
-import { useSubmissions, useExportSubmissions } from "@/entities/submission";
+import {
+  useSubmissions,
+  useExportSubmissions,
+  useExportSubmissionsToGoogleSheets,
+} from "@/entities/submission";
 import { FormBuilderHeader, FormBuilderCanvas } from "@/widgets/form-builder";
 import { FormSettingsPanel } from "@/features/form-settings";
 import { ResponsesView } from "@/features/form-responses";
@@ -27,6 +31,7 @@ export default function FormEditorPage() {
   const { data: submissionsData, isLoading: isLoadingSubmissions } =
     useSubmissions(formId);
   const exportMutation = useExportSubmissions();
+  const googleSheetsExportMutation = useExportSubmissionsToGoogleSheets();
 
   const handleToggleAcceptingResponses = (accepting: boolean) => {
     if (!currentForm) return;
@@ -123,7 +128,11 @@ export default function FormEditorPage() {
               questions={currentForm?.questions || []}
               isLoading={isLoadingSubmissions}
               onExport={(format) => exportMutation.mutate({ formId, format })}
+              onExportGoogleSheets={() =>
+                googleSheetsExportMutation.mutate({ formId })
+              }
               isExporting={exportMutation.isPending}
+              isExportingGoogleSheets={googleSheetsExportMutation.isPending}
               acceptingResponses={
                 currentForm?.settings.acceptingResponses ?? true
               }
