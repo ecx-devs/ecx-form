@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   DndContext,
+  AutoScrollActivator,
   closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   DragEndEvent,
+  DragMoveEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -24,6 +26,12 @@ export function FormBuilderCanvas() {
   const { currentForm, updateCurrentForm, reorderQuestions } = useFormStore();
   const updateFormMutation = useUpdateForm();
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
+  const [scrollAcceleration, setScrollAcceleration] = useState(16);
+  const dragVelocityRef = useRef<{
+    x: number;
+    y: number;
+    time: number;
+  } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -55,6 +63,45 @@ export function FormBuilderCanvas() {
     return () => clearTimeout(timeoutId);
   }, [currentForm?.title, currentForm?.description, currentForm?.questions, currentForm?.settings]);
 
+  const handleDragMove = useCallback((event: DragMoveEvent) => {
+    const now = performance.now();
+    const previous = dragVelocityRef.current;
+
+    if (!previous) {
+      dragVelocityRef.current = {
+        x: event.delta.x,
+        y: event.delta.y,
+        time: now,
+      };
+      return;
+    }
+
+    const elapsed = Math.max(now - previous.time, 1);
+    const distance = Math.hypot(
+      event.delta.x - previous.x,
+      event.delta.y - previous.y,
+    );
+    const pixelsPerFrame = distance / elapsed * 16.67;
+    const nextAcceleration = Math.round(
+      Math.min(28, Math.max(12, 12 + pixelsPerFrame * 0.55)),
+    );
+
+    dragVelocityRef.current = {
+      x: event.delta.x,
+      y: event.delta.y,
+      time: now,
+    };
+
+    setScrollAcceleration((current) =>
+      Math.abs(current - nextAcceleration) >= 2 ? nextAcceleration : current,
+    );
+  }, []);
+
+  const resetDragVelocity = useCallback(() => {
+    dragVelocityRef.current = null;
+    setScrollAcceleration(16);
+  }, []);
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -65,6 +112,8 @@ export function FormBuilderCanvas() {
       const newIndex = currentForm.questions.findIndex((q) => q.id === over.id);
       reorderQuestions(oldIndex, newIndex);
     }
+
+    resetDragVelocity();
   };
 
   if (!currentForm) return null;
@@ -91,7 +140,18 @@ export function FormBuilderCanvas() {
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        autoScroll={{
+          activator: AutoScrollActivator.Pointer,
+          acceleration: scrollAcceleration,
+          interval: 5,
+          threshold: {
+            x: 0.15,
+            y: 0.28,
+          },
+        }}
+        onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
+        onDragCancel={resetDragVelocity}
       >
         <SortableContext
           items={currentForm.questions.map((q) => q.id)}
