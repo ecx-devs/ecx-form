@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PublicForm } from "@/entities/form";
 import { Question } from "@/entities/question";
@@ -35,12 +35,19 @@ interface PublicFormRendererProps {
   isPreview?: boolean;
 }
 
+interface FormPage {
+  id: string;
+  section?: Question;
+  questions: Question[];
+}
+
 export function PublicFormRenderer({
   form,
   isPreview = false,
 }: PublicFormRendererProps) {
   const [answers, setAnswers] = useState<FormAnswers>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<{
     submissionId: string;
@@ -51,6 +58,14 @@ export function PublicFormRenderer({
   const answerableQuestions = form.questions.filter(
     (question) => question.type !== "section",
   );
+  const formPages = useMemo(() => buildFormPages(form.questions), [form.questions]);
+  const currentPage =
+    formPages[Math.min(currentPageIndex, formPages.length - 1)] || formPages[0];
+  const isLastPage = currentPageIndex === formPages.length - 1;
+
+  useEffect(() => {
+    setCurrentPageIndex(0);
+  }, [form.id]);
 
   // Check if already submitted (skip in preview mode)
   useEffect(() => {
@@ -97,10 +112,10 @@ export function PublicFormRenderer({
     [],
   );
 
-  const validateForm = (): boolean => {
+  const validateQuestions = (questions: Question[]): boolean => {
     const newErrors: Record<string, string> = {};
 
-    answerableQuestions.forEach((question) => {
+    questions.forEach((question) => {
       const value = answers[question.id];
       const validation = validateField(
         value,
@@ -116,6 +131,22 @@ export function PublicFormRenderer({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const validateForm = (): boolean => validateQuestions(answerableQuestions);
+
+  const handleContinue = () => {
+    if (!currentPage || !validateQuestions(currentPage.questions)) return;
+
+    setCurrentPageIndex((pageIndex) =>
+      Math.min(pageIndex + 1, formPages.length - 1),
+    );
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleBack = () => {
+    setCurrentPageIndex((pageIndex) => Math.max(pageIndex - 1, 0));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSubmit = async () => {
@@ -184,45 +215,59 @@ export function PublicFormRenderer({
 
       <div className="max-w-2xl mx-auto">
         {/* Form Header */}
-        <Card className="mb-4 border-t-8 border-t-ecx-blue">
-          <h1 className="text-heading-2 font-varela text-ecx-black mb-2">
-            {form.title}
-          </h1>
-          {form.description && (
-            <p className="text-body text-gray-600 whitespace-pre-line">{form.description}</p>
-          )}
-          <p className="text-body-sm text-ecx-red mt-4">* Required</p>
-        </Card>
+        {currentPageIndex === 0 && (
+          <Card className="mb-4 border-t-8 border-t-ecx-blue">
+            <h1 className="text-heading-2 font-varela text-ecx-black mb-2">
+              {form.title}
+            </h1>
+            {form.description && (
+              <p className="text-body text-gray-600 whitespace-pre-line">{form.description}</p>
+            )}
+            <p className="text-body-sm text-ecx-red mt-4">* Required</p>
+          </Card>
+        )}
 
         {/* Questions */}
         <div className="space-y-4">
-          {form.questions.map((question, index) =>
-            question.type === "section" ? (
-              <SectionBreak key={question.id} section={question} index={index} />
-            ) : (
-              <QuestionField
-                key={question.id}
-                question={question}
-                value={answers[question.id]}
-                error={errors[question.id]}
-                onChange={(value) => updateAnswer(question.id, value)}
-                index={index}
-                formId={form.id}
-              />
-            ),
+          {currentPage?.section && (
+            <SectionBreak section={currentPage.section} index={0} />
           )}
+          {currentPage?.questions.map((question, index) => (
+            <QuestionField
+              key={question.id}
+              question={question}
+              value={answers[question.id]}
+              error={errors[question.id]}
+              onChange={(value) => updateAnswer(question.id, value)}
+              index={index + (currentPage.section ? 1 : 0)}
+              formId={form.id}
+            />
+          ))}
         </div>
 
         {/* Submit Button */}
         <div className="mt-8 flex items-center justify-between">
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={handleSubmit}
-            isLoading={submitMutation.isPending}
-          >
-            Submit
-          </Button>
+          <div className="flex items-center gap-3">
+            {currentPageIndex > 0 && (
+              <Button variant="outline" size="lg" onClick={handleBack}>
+                Back
+              </Button>
+            )}
+            {isLastPage ? (
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleSubmit}
+                isLoading={submitMutation.isPending}
+              >
+                Submit
+              </Button>
+            ) : (
+              <Button variant="primary" size="lg" onClick={handleContinue}>
+                Continue
+              </Button>
+            )}
+          </div>
           <button
             onClick={() => setAnswers({})}
             className="text-ecx-blue hover:text-ecx-blue-600 text-body-sm font-medium"
@@ -233,6 +278,25 @@ export function PublicFormRenderer({
       </div>
     </div>
   );
+}
+
+function buildFormPages(questions: Question[]): FormPage[] {
+  const pages: FormPage[] = [{ id: "intro", questions: [] }];
+
+  questions.forEach((question) => {
+    if (question.type === "section") {
+      pages.push({
+        id: question.id,
+        section: question,
+        questions: [],
+      });
+      return;
+    }
+
+    pages[pages.length - 1].questions.push(question);
+  });
+
+  return pages;
 }
 
 function SectionBreak({
