@@ -33,12 +33,25 @@ async function getPublicForm(ecxId: string) {
   }
 }
 
+function getAppUrl() {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (appUrl && appUrl.startsWith("http")) return appUrl;
+  return "https://forms.ecx.com.ng";
+}
+
+function truncateText(value: string, maxLength: number) {
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, maxLength - 1).trimEnd()}...`;
+}
+
 export default async function OpenGraphImage({ params }: Props) {
   const form = await getPublicForm(params.ecxId);
   const title = form?.title || "ECX Forms";
   const description =
     form?.description || "Collecting responses with Engineering Career Expo";
   const themeColor = form?.settings?.themeColor || "#2699e3";
+  const logoUrl = `${getAppUrl()}/ecx-forms-logo.png`;
+  const titleSize = title.length > 64 ? 52 : title.length > 42 ? 60 : 70;
 
   return new ImageResponse(
     (
@@ -47,73 +60,153 @@ export default async function OpenGraphImage({ params }: Props) {
           width: "100%",
           height: "100%",
           display: "flex",
-          background: `linear-gradient(135deg, ${themeColor} 0%, #ffffff 68%)`,
-          padding: 64,
+          background: "#f8fbff",
+          padding: 48,
           fontFamily: "Inter, Arial, sans-serif",
         }}
       >
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
             width: "100%",
             height: "100%",
-            background: "rgba(255,255,255,0.92)",
-            borderRadius: 28,
-            padding: 56,
-            border: `8px solid ${themeColor}`,
+            overflow: "hidden",
+            borderRadius: 34,
+            background: "#ffffff",
+            border: "3px solid #2699e3",
+            boxShadow: "0 26px 80px rgba(39, 46, 75, 0.18)",
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            <div
-              style={{
-                display: "flex",
-                color: themeColor,
-                fontSize: 30,
-                fontWeight: 700,
-                letterSpacing: 0,
-              }}
-            >
-              ECX Forms
-            </div>
-            <div
-              style={{
-                display: "flex",
-                color: "#111827",
-                fontSize: title.length > 52 ? 54 : 68,
-                fontWeight: 800,
-                lineHeight: 1.05,
-                letterSpacing: 0,
-                maxWidth: 940,
-              }}
-            >
-              {title}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                color: "#4b5563",
-                fontSize: 30,
-                lineHeight: 1.35,
-                maxWidth: 880,
-              }}
-            >
-              {description.slice(0, 150)}
-            </div>
+          <div
+            style={{
+              display: "flex",
+              width: 30,
+              height: "100%",
+              flexDirection: "column",
+            }}
+          >
+            <div style={{ display: "flex", flex: 2, background: "#2699e3" }} />
+            <div style={{ display: "flex", flex: 1, background: "#fab12d" }} />
+            <div style={{ display: "flex", flex: 1, background: "#f2443f" }} />
           </div>
 
           <div
             style={{
               display: "flex",
-              alignItems: "center",
+              flex: 1,
+              flexDirection: "column",
               justifyContent: "space-between",
-              color: "#111827",
-              fontSize: 26,
+              padding: "54px 62px 48px 58px",
+              position: "relative",
             }}
           >
-            <span>forms.ecx.com.ng</span>
-            <span>{params.ecxId}</span>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                width: "100%",
+              }}
+            >
+              <img
+                src={logoUrl}
+                alt="ECX Forms"
+                width={118}
+                height={118}
+                style={{ objectFit: "contain" }}
+              />
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  borderRadius: 999,
+                  background: "#e6f4fc",
+                  border: "2px solid #cce9f9",
+                  color: "#175c89",
+                  fontSize: 24,
+                  fontWeight: 700,
+                  padding: "12px 22px",
+                }}
+              >
+                {params.ecxId}
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 26,
+                maxWidth: 880,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  color: "#000000",
+                  fontSize: titleSize,
+                  fontWeight: 800,
+                  lineHeight: 1.03,
+                  letterSpacing: 0,
+                }}
+              >
+                {truncateText(title, 88)}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  color: "#424242",
+                  fontSize: 31,
+                  lineHeight: 1.32,
+                  maxWidth: 820,
+                }}
+              >
+                {truncateText(description, 156)}
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                width: "100%",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  color: "#272e4b",
+                  fontSize: 25,
+                  fontWeight: 700,
+                }}
+              >
+                <span
+                  style={{
+                    display: "flex",
+                    width: 16,
+                    height: 16,
+                    borderRadius: 999,
+                    background: themeColor,
+                    border: "3px solid #ffffff",
+                    boxShadow: "0 0 0 2px #2699e3",
+                  }}
+                />
+                forms.ecx.com.ng
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  color: "#2699e3",
+                  fontSize: 24,
+                  fontWeight: 700,
+                }}
+              >
+                ECX Forms
+              </div>
+            </div>
           </div>
         </div>
       </div>
