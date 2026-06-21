@@ -12,6 +12,14 @@ interface FormMetadata {
   description?: string;
 }
 
+const OG_IMAGE_VERSION = "2026-06-21-2";
+
+function formatPreviewDescription(value: string): string {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (normalized.length <= 180) return normalized;
+  return `${normalized.slice(0, 179).trimEnd()}...`;
+}
+
 // Fetch form metadata server-side for title and social previews.
 async function getFormMetadata(ecxId: string): Promise<FormMetadata | null> {
   // Only fetch for valid form IDs
@@ -51,8 +59,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const appUrl = host ? `${protocol}://${host}` : APP_URL.replace(/\/$/, "");
 
   if (form?.title) {
-    const description = form.description || `${form.title}: ECX FORMS`;
-    const imageUrl = `${appUrl}/${ecxId}/opengraph-image`;
+    const description = formatPreviewDescription(
+      form.description || `${form.title}: ECX FORMS`,
+    );
+    const imageUrl = `${appUrl}/${ecxId}/opengraph-image?v=${OG_IMAGE_VERSION}`;
     return {
       title: form.title,
       description,

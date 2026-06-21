@@ -40,8 +40,9 @@ function getAppUrl() {
 }
 
 function truncateText(value: string, maxLength: number) {
-  if (value.length <= maxLength) return value;
-  return `${value.slice(0, maxLength - 1).trimEnd()}...`;
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength - 1).trimEnd()}...`;
 }
 
 export default async function OpenGraphImage({ params }: Props) {
@@ -51,7 +52,7 @@ export default async function OpenGraphImage({ params }: Props) {
     form?.description || "Collecting responses with Engineering Career Expo";
   const themeColor = form?.settings?.themeColor || "#2699e3";
   const logoUrl = `${getAppUrl()}/ecx-forms-logo.png`;
-  const titleSize = title.length > 64 ? 52 : title.length > 42 ? 60 : 70;
+  const titleSize = title.length > 58 ? 50 : title.length > 34 ? 58 : 68;
 
   return new ImageResponse(
     (
@@ -96,7 +97,7 @@ export default async function OpenGraphImage({ params }: Props) {
               flex: 1,
               flexDirection: "column",
               justifyContent: "space-between",
-              padding: "54px 62px 48px 58px",
+              padding: "42px 62px 42px 58px",
               position: "relative",
             }}
           >
@@ -111,8 +112,8 @@ export default async function OpenGraphImage({ params }: Props) {
               <img
                 src={logoUrl}
                 alt="ECX Forms"
-                width={118}
-                height={118}
+                width={92}
+                height={92}
                 style={{ objectFit: "contain" }}
               />
               <div
@@ -136,7 +137,7 @@ export default async function OpenGraphImage({ params }: Props) {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: 26,
+                gap: 18,
                 maxWidth: 880,
               }}
             >
@@ -146,22 +147,22 @@ export default async function OpenGraphImage({ params }: Props) {
                   color: "#000000",
                   fontSize: titleSize,
                   fontWeight: 800,
-                  lineHeight: 1.03,
+                  lineHeight: 1,
                   letterSpacing: 0,
                 }}
               >
-                {truncateText(title, 88)}
+                {truncateText(title, 78)}
               </div>
               <div
                 style={{
                   display: "flex",
                   color: "#424242",
-                  fontSize: 31,
-                  lineHeight: 1.32,
-                  maxWidth: 820,
+                  fontSize: 27,
+                  lineHeight: 1.28,
+                  maxWidth: 800,
                 }}
               >
-                {truncateText(description, 156)}
+                {truncateText(description, 112)}
               </div>
             </div>
 
