@@ -35,6 +35,7 @@ export interface GoogleSheetsExportResponse {
   spreadsheetId: string;
   url: string;
   title: string;
+  syncedAt: string;
 }
 
 export interface FormAnswers {

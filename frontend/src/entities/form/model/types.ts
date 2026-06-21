@@ -12,6 +12,11 @@ export interface FormSettings {
   themeColor: string;
   headerImageUrl?: string | null;
   headerImagePosition: HeaderImagePosition;
+  googleSheetsSpreadsheetId?: string;
+  googleSheetsUrl?: string;
+  googleSheetsTitle?: string;
+  googleSheetsLinkedAt?: string;
+  googleSheetsLastSyncedAt?: string;
 }
 
 export type HeaderImagePosition =
@@ -84,4 +89,9 @@ export const DEFAULT_FORM_SETTINGS: FormSettings = {
   themeColor: "#2699e3",
   headerImageUrl: undefined,
   headerImagePosition: "center center",
+  googleSheetsSpreadsheetId: undefined,
+  googleSheetsUrl: undefined,
+  googleSheetsTitle: undefined,
+  googleSheetsLinkedAt: undefined,
+  googleSheetsLastSyncedAt: undefined,
 };

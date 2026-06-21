@@ -69,10 +69,6 @@ export function createApp(): Application {
   const deleteFormUseCase = new DeleteFormUseCase(formRepository);
   const getPublicFormUseCase = new GetPublicFormUseCase(formRepository);
 
-  const submitFormUseCase = new SubmitFormUseCase(
-    formRepository,
-    submissionRepository,
-  );
   const getSubmissionsUseCase = new GetSubmissionsUseCase(
     formRepository,
     submissionRepository,
@@ -80,6 +76,11 @@ export function createApp(): Application {
   const exportSubmissionsUseCase = new ExportSubmissionsUseCase(
     formRepository,
     submissionRepository,
+  );
+  const submitFormUseCase = new SubmitFormUseCase(
+    formRepository,
+    submissionRepository,
+    exportSubmissionsUseCase,
   );
 
   const loginUseCase = new LoginUseCase(adminRepository);

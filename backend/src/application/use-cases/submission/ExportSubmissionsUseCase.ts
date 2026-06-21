@@ -1,5 +1,6 @@
 import { IFormRepository } from "../../../domain/repositories/IFormRepository";
 import { ISubmissionRepository } from "../../../domain/repositories/ISubmissionRepository";
+import { Form } from "../../../domain/entities/Form";
 import { FormId } from "../../../domain/value-objects/FormId";
 import { NotFoundError } from "../form/GetFormUseCase";
 import { google } from "googleapis";
@@ -17,6 +18,7 @@ export interface GoogleSheetsExportResult {
   spreadsheetId: string;
   url: string;
   title: string;
+  syncedAt: string;
 }
 
 interface GoogleSheetTabs {
@@ -80,7 +82,62 @@ export class ExportSubmissionsUseCase {
       submissions,
     );
 
-    return this.createGoogleSheet(form.title, questions, exportData);
+    const syncedAt = new Date().toISOString();
+    const existingSpreadsheetId = form.settings.googleSheetsSpreadsheetId;
+
+    if (existingSpreadsheetId && form.settings.googleSheetsUrl) {
+      await this.syncGoogleSheetData(
+        existingSpreadsheetId,
+        questions,
+        exportData,
+      );
+      form.updateSettings({ googleSheetsLastSyncedAt: syncedAt });
+      await this.formRepository.update(form);
+
+      return {
+        spreadsheetId: existingSpreadsheetId,
+        title: form.settings.googleSheetsTitle || `${form.title} responses`,
+        url: form.settings.googleSheetsUrl,
+        syncedAt,
+      };
+    }
+
+    const result = await this.createGoogleSheet(form.title, questions, exportData);
+    form.updateSettings({
+      googleSheetsSpreadsheetId: result.spreadsheetId,
+      googleSheetsUrl: result.url,
+      googleSheetsTitle: result.title,
+      googleSheetsLinkedAt: syncedAt,
+      googleSheetsLastSyncedAt: syncedAt,
+    });
+    await this.formRepository.update(form);
+
+    return { ...result, syncedAt };
+  }
+
+  async syncLinkedGoogleSheet(formId: string): Promise<void> {
+    const id = FormId.fromString(formId);
+    const form = await this.formRepository.findById(id);
+
+    if (!form?.settings.googleSheetsSpreadsheetId) return;
+
+    const submissions = await this.submissionRepository.findByFormId(formId);
+    const questions = this.getExportQuestions(form.questions);
+    const exportData = this.buildResponseExportData(
+      formId,
+      form.title,
+      questions,
+      submissions,
+    );
+    const syncedAt = new Date().toISOString();
+
+    await this.syncGoogleSheetData(
+      form.settings.googleSheetsSpreadsheetId,
+      questions,
+      exportData,
+    );
+    form.updateSettings({ googleSheetsLastSyncedAt: syncedAt });
+    await this.formRepository.update(form);
   }
 
   private exportAsXlsx(
@@ -330,7 +387,53 @@ export class ExportSubmissionsUseCase {
       drive,
       title,
     );
+    await this.syncGoogleSheetData(spreadsheetId, questions, exportData);
+
+    const shareEmail = process.env.GOOGLE_SHEETS_SHARE_EMAIL;
+    if (shareEmail) {
+      try {
+        await drive.permissions.create({
+          fileId: spreadsheetId,
+          supportsAllDrives: true,
+          sendNotificationEmail: false,
+          requestBody: {
+            type: "user",
+            role: process.env.GOOGLE_SHEETS_SHARE_ROLE || "writer",
+            emailAddress: shareEmail,
+          },
+        });
+      } catch (error) {
+        console.warn("[Google Sheets] Failed to share exported sheet", error);
+      }
+    }
+
+    return {
+      spreadsheetId,
+      title,
+      url: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`,
+      syncedAt: new Date().toISOString(),
+    };
+  }
+
+  private async syncGoogleSheetData(
+    spreadsheetId: string,
+    questions: ExportQuestion[],
+    exportData: ResponseExportData,
+  ): Promise<void> {
+    const auth = this.createGoogleAuth();
+    const sheets = google.sheets({ version: "v4", auth });
     const tabs = await this.setupGoogleSheetTabs(sheets, spreadsheetId);
+
+    await Promise.all([
+      sheets.spreadsheets.values.clear({
+        spreadsheetId,
+        range: "Responses!A:ZZ",
+      }),
+      sheets.spreadsheets.values.clear({
+        spreadsheetId,
+        range: "Questions!A:ZZ",
+      }),
+    ]);
 
     await sheets.spreadsheets.values.update({
       spreadsheetId,
@@ -375,26 +478,6 @@ export class ExportSubmissionsUseCase {
         ),
       },
     });
-
-    const shareEmail = process.env.GOOGLE_SHEETS_SHARE_EMAIL;
-    if (shareEmail) {
-      await drive.permissions.create({
-        fileId: spreadsheetId,
-        supportsAllDrives: true,
-        sendNotificationEmail: false,
-        requestBody: {
-          type: "user",
-          role: process.env.GOOGLE_SHEETS_SHARE_ROLE || "writer",
-          emailAddress: shareEmail,
-        },
-      });
-    }
-
-    return {
-      spreadsheetId,
-      title,
-      url: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`,
-    };
   }
 
   private createGoogleAuth() {
@@ -477,37 +560,61 @@ export class ExportSubmissionsUseCase {
       fields: "sheets(properties(sheetId,title))",
     });
 
-    const responsesSheetId = spreadsheet.data.sheets?.[0]?.properties?.sheetId;
-    if (responsesSheetId === undefined || responsesSheetId === null) {
+    const sheetProperties =
+      spreadsheet.data.sheets
+        ?.map((sheet) => sheet.properties)
+        .filter((properties) => properties?.sheetId !== undefined) ?? [];
+    const responsesSheet = sheetProperties.find(
+      (properties) => properties?.title === "Responses",
+    );
+    const questionsSheet = sheetProperties.find(
+      (properties) => properties?.title === "Questions",
+    );
+    const defaultSheetId = sheetProperties[0]?.sheetId;
+
+    if (defaultSheetId === undefined || defaultSheetId === null) {
       throw new Error("Google Sheets did not return a default sheet ID");
     }
 
-    const questionsSheetId = responsesSheetId === 1 ? 2 : 1;
+    const requests = [];
+    const responsesSheetId = responsesSheet?.sheetId ?? defaultSheetId;
+    let questionsSheetId = questionsSheet?.sheetId;
 
-    await sheets.spreadsheets.batchUpdate({
-      spreadsheetId,
-      requestBody: {
-        requests: [
-          {
-            updateSheetProperties: {
-              properties: {
-                sheetId: responsesSheetId,
-                title: "Responses",
-              },
-              fields: "title",
-            },
+    if (!responsesSheet) {
+      requests.push({
+        updateSheetProperties: {
+          properties: {
+            sheetId: responsesSheetId,
+            title: "Responses",
           },
-          {
-            addSheet: {
-              properties: {
-                sheetId: questionsSheetId,
-                title: "Questions",
-              },
-            },
+          fields: "title",
+        },
+      });
+    }
+
+    if (questionsSheetId === undefined || questionsSheetId === null) {
+      const existingSheetIds = sheetProperties
+        .map((properties) => properties?.sheetId)
+        .filter((sheetId): sheetId is number => sheetId !== undefined);
+      questionsSheetId = Math.max(...existingSheetIds, 0) + 1;
+      requests.push({
+        addSheet: {
+          properties: {
+            sheetId: questionsSheetId,
+            title: "Questions",
           },
-        ],
-      },
-    });
+        },
+      });
+    }
+
+    if (requests.length > 0) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests,
+        },
+      });
+    }
 
     return {
       responsesSheetId,
@@ -537,6 +644,22 @@ export class ExportSubmissionsUseCase {
       exportData.metadataRows.length + 2 + exportData.dataRows.length;
 
     return [
+      {
+        clearBasicFilter: {
+          sheetId: responsesSheetId,
+        },
+      },
+      {
+        unmergeCells: {
+          range: {
+            sheetId: responsesSheetId,
+            startRowIndex: 0,
+            endRowIndex: Math.max(totalRows, 1),
+            startColumnIndex: 0,
+            endColumnIndex: totalColumns,
+          },
+        },
+      },
       {
         mergeCells: {
           range: {
@@ -653,6 +776,17 @@ export class ExportSubmissionsUseCase {
             startIndex: 0,
             endIndex: Math.max(questionCount, 5),
           },
+        },
+      },
+      {
+        updateSheetProperties: {
+          properties: {
+            sheetId: questionsSheetId,
+            gridProperties: {
+              frozenRowCount: 1,
+            },
+          },
+          fields: "gridProperties.frozenRowCount",
         },
       },
     ];
@@ -792,6 +926,3 @@ export class GoogleSheetsNotConfiguredError extends Error {
     this.name = "GoogleSheetsNotConfiguredError";
   }
 }
-
-// Type helper for Form
-import { Form } from "../../../domain/entities/Form";

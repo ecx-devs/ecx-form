@@ -7,10 +7,15 @@ import { CreateSubmissionDTO, SubmitSuccessDTO } from "../../dto/SubmissionDTO";
 import { NotFoundError } from "../form/GetFormUseCase";
 import { FormNotPublishedError } from "../form/GetPublicFormUseCase";
 
+interface LinkedGoogleSheetSync {
+  syncLinkedGoogleSheet(formId: string): Promise<void>;
+}
+
 export class SubmitFormUseCase {
   constructor(
     private readonly formRepository: IFormRepository,
     private readonly submissionRepository: ISubmissionRepository,
+    private readonly linkedGoogleSheetSync?: LinkedGoogleSheetSync,
   ) {}
 
   async execute(dto: CreateSubmissionDTO): Promise<SubmitSuccessDTO> {
@@ -64,6 +69,20 @@ export class SubmitFormUseCase {
     );
 
     await this.submissionRepository.create(submission);
+
+    if (
+      form.settings.googleSheetsSpreadsheetId &&
+      this.linkedGoogleSheetSync
+    ) {
+      try {
+        await this.linkedGoogleSheetSync.syncLinkedGoogleSheet(dto.formId);
+      } catch (error) {
+        console.warn(
+          "[Google Sheets] Failed to sync linked sheet after submission",
+          error,
+        );
+      }
+    }
 
     return {
       submissionId: submission.id.value,

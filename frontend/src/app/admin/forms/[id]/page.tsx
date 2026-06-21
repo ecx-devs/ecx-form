@@ -32,6 +32,7 @@ export default function FormEditorPage() {
     useSubmissions(formId);
   const exportMutation = useExportSubmissions();
   const googleSheetsExportMutation = useExportSubmissionsToGoogleSheets();
+  const activeForm = currentForm?.id === formId ? currentForm : form;
 
   const handleToggleAcceptingResponses = (accepting: boolean) => {
     if (!currentForm) return;
@@ -131,10 +132,11 @@ export default function FormEditorPage() {
               onExportGoogleSheets={() =>
                 googleSheetsExportMutation.mutate({ formId })
               }
+              googleSheetsUrl={activeForm?.settings.googleSheetsUrl}
               isExporting={exportMutation.isPending}
               isExportingGoogleSheets={googleSheetsExportMutation.isPending}
               acceptingResponses={
-                currentForm?.settings.acceptingResponses ?? true
+                activeForm?.settings.acceptingResponses ?? true
               }
               onToggleAcceptingResponses={handleToggleAcceptingResponses}
             />

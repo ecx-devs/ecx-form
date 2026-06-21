@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { submissionApi } from "./submissionApi";
 import { SubmitFormInput } from "../model/types";
+import { Form, formKeys, useFormStore } from "@/entities/form";
 import { markFormAsSubmitted, clearFormDraft } from "@/shared/lib/storage";
 import toast from "react-hot-toast";
 
@@ -70,12 +71,45 @@ export function useExportSubmissions() {
 }
 
 export function useExportSubmissionsToGoogleSheets() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({ formId }: { formId: string }) =>
       submissionApi.exportToGoogleSheets(formId),
-    onSuccess: (result) => {
+    onSuccess: (result, { formId }) => {
+      const currentForm = useFormStore.getState().currentForm;
+      const googleSheetsSettings = {
+        googleSheetsSpreadsheetId: result.spreadsheetId,
+        googleSheetsUrl: result.url,
+        googleSheetsTitle: result.title,
+        googleSheetsLinkedAt:
+          currentForm?.id === formId
+            ? currentForm.settings.googleSheetsLinkedAt ?? result.syncedAt
+            : result.syncedAt,
+        googleSheetsLastSyncedAt: result.syncedAt,
+      };
+
       window.open(result.url, "_blank", "noopener,noreferrer");
-      toast.success("Google Sheet created successfully");
+      queryClient.setQueryData<Form | undefined>(
+        formKeys.detail(formId),
+        (form) =>
+          form
+            ? {
+                ...form,
+                settings: {
+                  ...form.settings,
+                  ...googleSheetsSettings,
+                },
+              }
+            : form,
+      );
+
+      if (currentForm?.id === formId) {
+        useFormStore.getState().updateSettings(googleSheetsSettings);
+      }
+
+      queryClient.invalidateQueries({ queryKey: formKeys.detail(formId) });
+      toast.success("Google Sheet ready");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to export to Google Sheets");

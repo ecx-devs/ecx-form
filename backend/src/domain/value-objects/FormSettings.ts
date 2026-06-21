@@ -8,6 +8,11 @@ export interface FormSettingsProps {
   themeColor: string;
   headerImageUrl?: string | null;
   headerImagePosition: string;
+  googleSheetsSpreadsheetId?: string;
+  googleSheetsUrl?: string;
+  googleSheetsTitle?: string;
+  googleSheetsLinkedAt?: string;
+  googleSheetsLastSyncedAt?: string;
 }
 
 export class FormSettings {
@@ -20,6 +25,11 @@ export class FormSettings {
   readonly themeColor: string;
   readonly headerImageUrl?: string;
   readonly headerImagePosition: string;
+  readonly googleSheetsSpreadsheetId?: string;
+  readonly googleSheetsUrl?: string;
+  readonly googleSheetsTitle?: string;
+  readonly googleSheetsLinkedAt?: string;
+  readonly googleSheetsLastSyncedAt?: string;
 
   private constructor(props: FormSettingsProps) {
     this.limitToOneResponse = props.limitToOneResponse;
@@ -31,6 +41,13 @@ export class FormSettings {
     this.themeColor = props.themeColor;
     this.headerImageUrl = props.headerImageUrl ?? undefined;
     this.headerImagePosition = props.headerImagePosition;
+    this.googleSheetsSpreadsheetId =
+      props.googleSheetsSpreadsheetId ?? undefined;
+    this.googleSheetsUrl = props.googleSheetsUrl ?? undefined;
+    this.googleSheetsTitle = props.googleSheetsTitle ?? undefined;
+    this.googleSheetsLinkedAt = props.googleSheetsLinkedAt ?? undefined;
+    this.googleSheetsLastSyncedAt =
+      props.googleSheetsLastSyncedAt ?? undefined;
   }
 
   static default(): FormSettings {
@@ -44,6 +61,11 @@ export class FormSettings {
       themeColor: "#2699e3",
       headerImageUrl: undefined,
       headerImagePosition: "center center",
+      googleSheetsSpreadsheetId: undefined,
+      googleSheetsUrl: undefined,
+      googleSheetsTitle: undefined,
+      googleSheetsLinkedAt: undefined,
+      googleSheetsLastSyncedAt: undefined,
     });
   }
 
@@ -64,6 +86,17 @@ export class FormSettings {
       headerImageUrl: props.headerImageUrl ?? defaults.headerImageUrl,
       headerImagePosition:
         props.headerImagePosition ?? defaults.headerImagePosition,
+      googleSheetsSpreadsheetId:
+        props.googleSheetsSpreadsheetId ??
+        defaults.googleSheetsSpreadsheetId,
+      googleSheetsUrl: props.googleSheetsUrl ?? defaults.googleSheetsUrl,
+      googleSheetsTitle:
+        props.googleSheetsTitle ?? defaults.googleSheetsTitle,
+      googleSheetsLinkedAt:
+        props.googleSheetsLinkedAt ?? defaults.googleSheetsLinkedAt,
+      googleSheetsLastSyncedAt:
+        props.googleSheetsLastSyncedAt ??
+        defaults.googleSheetsLastSyncedAt,
     });
   }
 
@@ -89,6 +122,17 @@ export class FormSettings {
           : updates.headerImageUrl ?? current.headerImageUrl,
       headerImagePosition:
         updates.headerImagePosition ?? current.headerImagePosition,
+      googleSheetsSpreadsheetId:
+        updates.googleSheetsSpreadsheetId ??
+        current.googleSheetsSpreadsheetId,
+      googleSheetsUrl: updates.googleSheetsUrl ?? current.googleSheetsUrl,
+      googleSheetsTitle:
+        updates.googleSheetsTitle ?? current.googleSheetsTitle,
+      googleSheetsLinkedAt:
+        updates.googleSheetsLinkedAt ?? current.googleSheetsLinkedAt,
+      googleSheetsLastSyncedAt:
+        updates.googleSheetsLastSyncedAt ??
+        current.googleSheetsLastSyncedAt,
     });
   }
 
@@ -103,6 +147,11 @@ export class FormSettings {
       themeColor: this.themeColor,
       headerImageUrl: this.headerImageUrl,
       headerImagePosition: this.headerImagePosition,
+      googleSheetsSpreadsheetId: this.googleSheetsSpreadsheetId,
+      googleSheetsUrl: this.googleSheetsUrl,
+      googleSheetsTitle: this.googleSheetsTitle,
+      googleSheetsLinkedAt: this.googleSheetsLinkedAt,
+      googleSheetsLastSyncedAt: this.googleSheetsLastSyncedAt,
     };
   }
 }

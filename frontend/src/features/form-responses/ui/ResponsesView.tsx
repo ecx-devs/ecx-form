@@ -8,6 +8,7 @@ import {
   Button,
   Card,
   IconDownload,
+  IconEye,
   IconChevronLeft,
   IconChevronRight,
   SkeletonResponseSummary,
@@ -88,6 +89,7 @@ interface ResponsesViewProps {
   isLoading: boolean;
   onExport: (format: "xlsx" | "json") => void;
   onExportGoogleSheets?: () => void;
+  googleSheetsUrl?: string | null;
   isExporting: boolean;
   isExportingGoogleSheets?: boolean;
   acceptingResponses?: boolean;
@@ -102,6 +104,7 @@ export function ResponsesView({
   isLoading,
   onExport,
   onExportGoogleSheets,
+  googleSheetsUrl,
   isExporting,
   isExportingGoogleSheets,
   acceptingResponses = true,
@@ -196,7 +199,18 @@ export function ResponsesView({
             >
               Export to Excel
             </Button>
-            {onExportGoogleSheets && (
+            {googleSheetsUrl ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  window.open(googleSheetsUrl, "_blank", "noopener,noreferrer")
+                }
+                leftIcon={<IconEye size={18} />}
+              >
+                View Google Sheet
+              </Button>
+            ) : onExportGoogleSheets ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -206,7 +220,7 @@ export function ResponsesView({
               >
                 Export to Google Sheets
               </Button>
-            )}
+            ) : null}
           </div>
         )}
       </div>
