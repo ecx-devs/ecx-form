@@ -19,6 +19,11 @@ export interface GoogleSheetsExportResult {
   title: string;
 }
 
+interface GoogleSheetTabs {
+  responsesSheetId: number;
+  questionsSheetId: number;
+}
+
 type ExportQuestion = typeof Form.prototype.questions[number] & {
   sectionTitle?: string;
 };
@@ -336,23 +341,12 @@ export class ExportSubmissionsUseCase {
     const sheets = google.sheets({ version: "v4", auth });
     const drive = google.drive({ version: "v3", auth });
     const title = `${formTitle} responses`;
-
-    const created = await sheets.spreadsheets.create({
-      requestBody: {
-        properties: {
-          title,
-        },
-        sheets: [
-          { properties: { title: "Responses" } },
-          { properties: { title: "Questions" } },
-        ],
-      },
-    });
-
-    const spreadsheetId = created.data.spreadsheetId;
-    if (!spreadsheetId) {
-      throw new Error("Google Sheets did not return a spreadsheet ID");
-    }
+    const spreadsheetId = await this.createGoogleSpreadsheetFile(
+      sheets,
+      drive,
+      title,
+    );
+    const tabs = await this.setupGoogleSheetTabs(sheets, spreadsheetId);
 
     await sheets.spreadsheets.values.update({
       spreadsheetId,
@@ -392,6 +386,8 @@ export class ExportSubmissionsUseCase {
         requests: this.buildGoogleSheetsFormattingRequests(
           exportData,
           questions.length,
+          tabs.responsesSheetId,
+          tabs.questionsSheetId,
         ),
       },
     });
@@ -400,6 +396,7 @@ export class ExportSubmissionsUseCase {
     if (shareEmail) {
       await drive.permissions.create({
         fileId: spreadsheetId,
+        supportsAllDrives: true,
         sendNotificationEmail: false,
         requestBody: {
           type: "user",
@@ -416,6 +413,94 @@ export class ExportSubmissionsUseCase {
     };
   }
 
+  private async createGoogleSpreadsheetFile(
+    sheets: ReturnType<typeof google.sheets>,
+    drive: ReturnType<typeof google.drive>,
+    title: string,
+  ): Promise<string> {
+    const parentId =
+      process.env.GOOGLE_DRIVE_PARENT_ID || process.env.GOOGLE_SHARED_DRIVE_ID;
+
+    if (parentId) {
+      const created = await drive.files.create({
+        supportsAllDrives: true,
+        fields: "id",
+        requestBody: {
+          name: title,
+          mimeType: "application/vnd.google-apps.spreadsheet",
+          parents: [parentId],
+        },
+      });
+
+      if (!created.data.id) {
+        throw new Error("Google Drive did not return a spreadsheet ID");
+      }
+
+      return created.data.id;
+    }
+
+    const created = await sheets.spreadsheets.create({
+      requestBody: {
+        properties: {
+          title,
+        },
+      },
+    });
+
+    if (!created.data.spreadsheetId) {
+      throw new Error("Google Sheets did not return a spreadsheet ID");
+    }
+
+    return created.data.spreadsheetId;
+  }
+
+  private async setupGoogleSheetTabs(
+    sheets: ReturnType<typeof google.sheets>,
+    spreadsheetId: string,
+  ): Promise<GoogleSheetTabs> {
+    const spreadsheet = await sheets.spreadsheets.get({
+      spreadsheetId,
+      fields: "sheets(properties(sheetId,title))",
+    });
+
+    const responsesSheetId = spreadsheet.data.sheets?.[0]?.properties?.sheetId;
+    if (responsesSheetId === undefined || responsesSheetId === null) {
+      throw new Error("Google Sheets did not return a default sheet ID");
+    }
+
+    const questionsSheetId = responsesSheetId === 1 ? 2 : 1;
+
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            updateSheetProperties: {
+              properties: {
+                sheetId: responsesSheetId,
+                title: "Responses",
+              },
+              fields: "title",
+            },
+          },
+          {
+            addSheet: {
+              properties: {
+                sheetId: questionsSheetId,
+                title: "Questions",
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    return {
+      responsesSheetId,
+      questionsSheetId,
+    };
+  }
+
   private toGoogleSheetValues(rows: unknown[][]): unknown[][] {
     return rows.map((row) =>
       row.map((value) => {
@@ -428,6 +513,8 @@ export class ExportSubmissionsUseCase {
   private buildGoogleSheetsFormattingRequests(
     exportData: ResponseExportData,
     questionCount: number,
+    responsesSheetId: number,
+    questionsSheetId: number,
   ) {
     const headerRowIndex = exportData.metadataRows.length + 1;
     const sectionRowIndex = exportData.metadataRows.length;
@@ -439,7 +526,7 @@ export class ExportSubmissionsUseCase {
       {
         mergeCells: {
           range: {
-            sheetId: 0,
+            sheetId: responsesSheetId,
             startRowIndex: 0,
             endRowIndex: 1,
             startColumnIndex: 0,
@@ -451,11 +538,12 @@ export class ExportSubmissionsUseCase {
       ...this.buildGoogleSheetSectionMerges(
         exportData.sectionHeaders,
         sectionRowIndex,
+        responsesSheetId,
       ),
       {
         repeatCell: {
           range: {
-            sheetId: 0,
+            sheetId: responsesSheetId,
             startRowIndex: 0,
             endRowIndex: 1,
             startColumnIndex: 0,
@@ -472,7 +560,7 @@ export class ExportSubmissionsUseCase {
       {
         repeatCell: {
           range: {
-            sheetId: 0,
+            sheetId: responsesSheetId,
             startRowIndex: sectionRowIndex,
             endRowIndex: headerRowIndex + 1,
             startColumnIndex: 0,
@@ -495,7 +583,7 @@ export class ExportSubmissionsUseCase {
         setBasicFilter: {
           filter: {
             range: {
-              sheetId: 0,
+              sheetId: responsesSheetId,
               startRowIndex: headerRowIndex,
               endRowIndex: Math.max(headerRowIndex + 1, totalRows),
               startColumnIndex: 0,
@@ -507,7 +595,7 @@ export class ExportSubmissionsUseCase {
       {
         updateSheetProperties: {
           properties: {
-            sheetId: 0,
+            sheetId: responsesSheetId,
             gridProperties: {
               frozenRowCount: headerRowIndex + 1,
             },
@@ -518,7 +606,7 @@ export class ExportSubmissionsUseCase {
       {
         autoResizeDimensions: {
           dimensions: {
-            sheetId: 0,
+            sheetId: responsesSheetId,
             dimension: "COLUMNS",
             startIndex: 0,
             endIndex: totalColumns,
@@ -528,7 +616,7 @@ export class ExportSubmissionsUseCase {
       {
         repeatCell: {
           range: {
-            sheetId: 1,
+            sheetId: questionsSheetId,
             startRowIndex: 0,
             endRowIndex: 1,
             startColumnIndex: 0,
@@ -546,7 +634,7 @@ export class ExportSubmissionsUseCase {
       {
         autoResizeDimensions: {
           dimensions: {
-            sheetId: 1,
+            sheetId: questionsSheetId,
             dimension: "COLUMNS",
             startIndex: 0,
             endIndex: Math.max(questionCount, 5),
@@ -559,12 +647,13 @@ export class ExportSubmissionsUseCase {
   private buildGoogleSheetSectionMerges(
     sectionHeaders: string[],
     sectionRowIndex: number,
+    responsesSheetId: number,
   ) {
     return this.buildSectionMerges(sectionHeaders, sectionRowIndex).map(
       (range) => ({
         mergeCells: {
           range: {
-            sheetId: 0,
+            sheetId: responsesSheetId,
             startRowIndex: range.s.r,
             endRowIndex: range.e.r + 1,
             startColumnIndex: range.s.c,
