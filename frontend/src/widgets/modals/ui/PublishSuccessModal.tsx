@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Modal, Button, Input, QRCode, IconLink, IconCopy, IconCheck, IconEye } from '@/shared/ui';
-import { APP_URL } from '@/shared/config/constants';
+import { APP_URL, SHARE_PREVIEW_VERSION } from '@/shared/config/constants';
 import toast from 'react-hot-toast';
 
 interface PublishSuccessModalProps {
@@ -17,7 +17,7 @@ export function PublishSuccessModal({ isOpen, onClose, formId, formTitle }: Publ
   const [copied, setCopied] = useState(false);
   const appOrigin =
     typeof window !== 'undefined' ? window.location.origin : APP_URL;
-  const formUrl = `${appOrigin.replace(/\/$/, '')}/${formId}`;
+  const formUrl = `${appOrigin.replace(/\/$/, '')}/${formId}?preview=${SHARE_PREVIEW_VERSION}`;
 
   const handleCopy = async () => {
     try {

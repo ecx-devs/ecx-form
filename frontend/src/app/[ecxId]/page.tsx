@@ -1,6 +1,10 @@
 import { Metadata } from "next";
 import { headers } from "next/headers";
-import { API_BASE_URL, APP_URL } from "@/shared/config/constants";
+import {
+  API_BASE_URL,
+  APP_URL,
+  SHARE_PREVIEW_VERSION,
+} from "@/shared/config/constants";
 import PublicFormPageClient from "./client";
 
 interface Props {
@@ -11,8 +15,6 @@ interface FormMetadata {
   title: string;
   description?: string;
 }
-
-const OG_IMAGE_VERSION = "2026-06-21-2";
 
 function formatPreviewDescription(value: string): string {
   const normalized = value.replace(/\s+/g, " ").trim();
@@ -62,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const description = formatPreviewDescription(
       form.description || `${form.title}: ECX FORMS`,
     );
-    const imageUrl = `${appUrl}/${ecxId}/opengraph-image?v=${OG_IMAGE_VERSION}`;
+    const imageUrl = `${appUrl}/${ecxId}/opengraph-image?v=${SHARE_PREVIEW_VERSION}`;
     return {
       title: form.title,
       description,

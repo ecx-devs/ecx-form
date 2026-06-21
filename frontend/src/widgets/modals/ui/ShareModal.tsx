@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Modal, ModalFooter, Button, Input, QRCode, IconLink, IconCopy, IconCheck } from '@/shared/ui';
-import { APP_URL } from '@/shared/config/constants';
+import { APP_URL, SHARE_PREVIEW_VERSION } from '@/shared/config/constants';
 import toast from 'react-hot-toast';
 
 interface ShareModalProps {
@@ -17,7 +17,7 @@ export function ShareModal({ isOpen, onClose, formId, formTitle }: ShareModalPro
   const [copied, setCopied] = useState(false);
   const appOrigin =
     typeof window !== 'undefined' ? window.location.origin : APP_URL;
-  const formUrl = `${appOrigin.replace(/\/$/, '')}/${formId}`;
+  const formUrl = `${appOrigin.replace(/\/$/, '')}/${formId}?preview=${SHARE_PREVIEW_VERSION}`;
 
   const handleCopy = async () => {
     try {

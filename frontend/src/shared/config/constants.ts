@@ -5,6 +5,7 @@ export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000
 // Form Configuration
 export const MAX_FILE_SIZE_MB = 2;
 export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+export const SHARE_PREVIEW_VERSION = '2026-06-21-2';
 
 // ECX Branding
 export const BRAND = {
