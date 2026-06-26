@@ -76,6 +76,7 @@ export function createApp(): Application {
   const exportSubmissionsUseCase = new ExportSubmissionsUseCase(
     formRepository,
     submissionRepository,
+    fileUploadService,
   );
   const submitFormUseCase = new SubmitFormUseCase(
     formRepository,

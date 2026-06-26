@@ -81,6 +81,20 @@ export class FileUploadService {
     return data.publicUrl;
   }
 
+  async getSignedDownloadUrl(path: string): Promise<string> {
+    const expiresInSeconds =
+      Number(process.env.SIGNED_FILE_URL_EXPIRES_SECONDS) || 60 * 60 * 24 * 30;
+    const { data, error } = await this.supabase.storage
+      .from(BUCKETS.UPLOADS)
+      .createSignedUrl(path, expiresInSeconds);
+
+    if (error) {
+      throw new Error(`Failed to create signed download URL: ${error.message}`);
+    }
+
+    return data.signedUrl;
+  }
+
   async deleteFile(path: string): Promise<void> {
     const { error } = await this.supabase.storage
       .from(BUCKETS.UPLOADS)

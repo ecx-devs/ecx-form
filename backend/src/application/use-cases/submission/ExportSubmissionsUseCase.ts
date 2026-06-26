@@ -32,10 +32,10 @@ type ExportQuestion = typeof Form.prototype.questions[number] & {
 
 interface ResponseExportData {
   exportedAt: Date;
-  metadataRows: unknown[][];
+  metadataRows: ExportCellValue[][];
   sectionHeaders: string[];
   headers: string[];
-  dataRows: unknown[][];
+  dataRows: ExportCellValue[][];
 }
 
 interface SheetRange {
@@ -43,10 +43,22 @@ interface SheetRange {
   e: { r: number; c: number };
 }
 
+interface FileUrlSigner {
+  getSignedDownloadUrl(path: string): Promise<string>;
+}
+
+interface ExportLinkCell {
+  text: string;
+  hyperlink: string;
+}
+
+type ExportCellValue = string | number | boolean | Date | null | ExportLinkCell;
+
 export class ExportSubmissionsUseCase {
   constructor(
     private readonly formRepository: IFormRepository,
     private readonly submissionRepository: ISubmissionRepository,
+    private readonly fileUrlSigner?: FileUrlSigner,
   ) {}
 
   async execute(
@@ -80,7 +92,7 @@ export class ExportSubmissionsUseCase {
 
     const submissions = await this.submissionRepository.findByFormId(formId);
     const questions = this.getExportQuestions(form.questions);
-    const exportData = this.buildResponseExportData(
+    const exportData = await this.buildResponseExportData(
       formId,
       form.title,
       questions,
@@ -128,7 +140,7 @@ export class ExportSubmissionsUseCase {
 
     const submissions = await this.submissionRepository.findByFormId(formId);
     const questions = this.getExportQuestions(form.questions);
-    const exportData = this.buildResponseExportData(
+    const exportData = await this.buildResponseExportData(
       formId,
       form.title,
       questions,
@@ -153,7 +165,7 @@ export class ExportSubmissionsUseCase {
       ReturnType<typeof this.submissionRepository.findByFormId>
     >,
   ): Promise<ExportResult> {
-    const exportData = this.buildResponseExportData(
+    const exportData = await this.buildResponseExportData(
       formId,
       formTitle,
       questions,
@@ -237,7 +249,9 @@ export class ExportSubmissionsUseCase {
         name: header,
         filterButton: true,
       })),
-      rows: dataRows,
+      rows: dataRows.map((row) =>
+        row.map((value) => this.toExcelCellValue(value)),
+      ),
     });
 
     this.applyExcelWorksheetFormatting(
@@ -333,7 +347,9 @@ export class ExportSubmissionsUseCase {
     return `${question.title}${requiredMark}`;
   }
 
-  private formatAnswerForExport(value: string | string[] | null): string {
+  private async formatAnswerForExport(
+    value: string | string[] | null,
+  ): Promise<ExportCellValue> {
     if (value === null) return "";
 
     if (Array.isArray(value)) {
@@ -347,9 +363,29 @@ export class ExportSubmissionsUseCase {
     try {
       const parsed = JSON.parse(value);
       if (parsed && typeof parsed === "object" && "fileName" in parsed) {
-        return parsed.filePath
-          ? `${parsed.fileName} (${parsed.filePath})`
-          : String(parsed.fileName);
+        const fileName = String(parsed.fileName);
+        const filePath =
+          "filePath" in parsed && typeof parsed.filePath === "string"
+            ? parsed.filePath
+            : undefined;
+
+        if (filePath && this.fileUrlSigner) {
+          try {
+            return {
+              text: fileName,
+              hyperlink: await this.fileUrlSigner.getSignedDownloadUrl(
+                filePath,
+              ),
+            };
+          } catch (error) {
+            console.warn(
+              "[File Export] Failed to create signed file URL",
+              error,
+            );
+          }
+        }
+
+        return filePath ? `${fileName} (${filePath})` : fileName;
       }
     } catch {
       // Plain text answer, not JSON metadata.
@@ -358,14 +394,14 @@ export class ExportSubmissionsUseCase {
     return value;
   }
 
-  private buildResponseExportData(
+  private async buildResponseExportData(
     formId: string,
     formTitle: string,
     questions: ExportQuestion[],
     submissions: Awaited<
       ReturnType<typeof this.submissionRepository.findByFormId>
     >,
-  ): ResponseExportData {
+  ): Promise<ResponseExportData> {
     const exportedAt = new Date();
     const metadataRows = [
       [`${formTitle} responses`],
@@ -384,17 +420,17 @@ export class ExportSubmissionsUseCase {
       "Submitted at",
       ...questions.map((q) => this.buildQuestionHeader(q)),
     ];
-    const dataRows = submissions.map((sub) => {
+    const dataRows = await Promise.all(submissions.map(async (sub) => {
       const json = sub.toJSON();
       return [
         json.id,
         new Date(json.submittedAt),
-        ...questions.map((q) => {
+        ...(await Promise.all(questions.map(async (q) => {
           const answer = json.answers.find((a) => a.questionId === q.id);
           return answer ? this.formatAnswerForExport(answer.value) : "";
-        }),
+        }))),
       ];
-    });
+    }));
 
     return {
       exportedAt,
@@ -654,13 +690,20 @@ export class ExportSubmissionsUseCase {
     };
   }
 
-  private toGoogleSheetValues(rows: unknown[][]): unknown[][] {
+  private toGoogleSheetValues(rows: ExportCellValue[][]): unknown[][] {
     return rows.map((row) =>
       row.map((value) => {
         if (value instanceof Date) return value.toISOString();
+        if (this.isExportLinkCell(value)) {
+          return `=HYPERLINK("${this.escapeGoogleSheetFormulaText(value.hyperlink)}","${this.escapeGoogleSheetFormulaText(value.text)}")`;
+        }
         return value;
       }),
     );
+  }
+
+  private escapeGoogleSheetFormulaText(value: string): string {
+    return value.replace(/"/g, '""');
   }
 
   private buildGoogleSheetsFormattingRequests(
@@ -880,7 +923,7 @@ export class ExportSubmissionsUseCase {
     worksheet: ExcelJS.Worksheet,
     headers: string[],
     sectionHeaders: string[],
-    dataRows: unknown[][],
+    dataRows: ExportCellValue[][],
     headerRowNumber: number,
   ): void {
     const border = this.getTableCellBorder();
@@ -889,7 +932,7 @@ export class ExportSubmissionsUseCase {
       const values = [
         header,
         sectionHeaders[index],
-        ...dataRows.map((row) => String(row[index] || "")),
+        ...dataRows.map((row) => this.toExportDisplayText(row[index])),
       ];
       const maxLength = Math.max(...values.map((value) => value.length));
       const width =
@@ -933,8 +976,54 @@ export class ExportSubmissionsUseCase {
       row.eachCell((cell) => {
         cell.alignment = { vertical: "top", wrapText: true };
         cell.border = border;
+        if (this.isExcelHyperlinkCellValue(cell.value)) {
+          cell.font = {
+            color: { argb: "FF0B57D0" },
+            underline: true,
+          };
+        }
       });
     }
+  }
+
+  private toExcelCellValue(value: ExportCellValue): ExcelJS.CellValue {
+    if (this.isExportLinkCell(value)) {
+      return {
+        text: value.text,
+        hyperlink: value.hyperlink,
+      };
+    }
+
+    return value;
+  }
+
+  private toExportDisplayText(value: ExportCellValue | undefined): string {
+    if (value === undefined || value === null) return "";
+    if (value instanceof Date) return value.toISOString();
+    if (this.isExportLinkCell(value)) return value.text;
+    return String(value);
+  }
+
+  private isExportLinkCell(value: unknown): value is ExportLinkCell {
+    return (
+      !!value &&
+      typeof value === "object" &&
+      "text" in value &&
+      "hyperlink" in value &&
+      typeof value.text === "string" &&
+      typeof value.hyperlink === "string"
+    );
+  }
+
+  private isExcelHyperlinkCellValue(
+    value: ExcelJS.CellValue,
+  ): value is ExcelJS.CellHyperlinkValue {
+    return (
+      !!value &&
+      typeof value === "object" &&
+      "hyperlink" in value &&
+      typeof value.hyperlink === "string"
+    );
   }
 
   private addQuestionsWorksheet(
