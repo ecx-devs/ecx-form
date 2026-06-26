@@ -121,6 +121,7 @@ export function createApp(): Application {
     cors({
       origin: process.env.FRONTEND_URL || "http://localhost:3000",
       credentials: true,
+      exposedHeaders: ["Content-Disposition"],
     }),
   );
   app.use(express.json({ limit: "10mb" }));

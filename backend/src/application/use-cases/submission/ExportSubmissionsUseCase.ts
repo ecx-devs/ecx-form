@@ -3,8 +3,8 @@ import { ISubmissionRepository } from "../../../domain/repositories/ISubmissionR
 import { Form } from "../../../domain/entities/Form";
 import { FormId } from "../../../domain/value-objects/FormId";
 import { NotFoundError } from "../form/GetFormUseCase";
+import ExcelJS from "exceljs";
 import { google } from "googleapis";
-import * as XLSX from "xlsx";
 
 export type ExportFormat = "xlsx" | "json";
 
@@ -36,6 +36,11 @@ interface ResponseExportData {
   sectionHeaders: string[];
   headers: string[];
   dataRows: unknown[][];
+}
+
+interface SheetRange {
+  s: { r: number; c: number };
+  e: { r: number; c: number };
 }
 
 export class ExportSubmissionsUseCase {
@@ -140,14 +145,14 @@ export class ExportSubmissionsUseCase {
     await this.formRepository.update(form);
   }
 
-  private exportAsXlsx(
+  private async exportAsXlsx(
     formId: string,
     formTitle: string,
     questions: ExportQuestion[],
     submissions: Awaited<
       ReturnType<typeof this.submissionRepository.findByFormId>
     >,
-  ): ExportResult {
+  ): Promise<ExportResult> {
     const exportData = this.buildResponseExportData(
       formId,
       formTitle,
@@ -156,76 +161,103 @@ export class ExportSubmissionsUseCase {
     );
     const { exportedAt, metadataRows, sectionHeaders, headers, dataRows } =
       exportData;
-
-    const worksheetData = [
-      ...metadataRows,
-      sectionHeaders,
-      headers,
-      ...dataRows,
-    ];
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-    const lastColumn = Math.max(headers.length - 1, 0);
+    const totalColumns = headers.length;
     const headerRowNumber = metadataRows.length + 2;
-    const dataStartRowNumber = headerRowNumber + 1;
 
-    worksheet["!cols"] = headers.map((header, i) => {
-      const values = [
-        header,
-        sectionHeaders[i],
-        ...dataRows.map((row) => String(row[i] || "")),
-      ];
-      const maxLength = Math.max(...values.map((value) => value.length));
-      const width = i === 0 ? 20 : i === 1 ? 22 : Math.min(maxLength + 4, 42);
-      return { wch: Math.max(width, 14) };
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = "ECX Forms";
+    workbook.created = exportedAt;
+    workbook.modified = exportedAt;
+    workbook.subject = "ECX Forms response export";
+    workbook.title = `${formTitle} responses`;
+
+    const worksheet = workbook.addWorksheet("Responses", {
+      views: [{ state: "frozen", ySplit: headerRowNumber }],
     });
-    worksheet["!autofilter"] = {
-      ref: XLSX.utils.encode_range({
-        s: { r: headerRowNumber - 1, c: 0 },
-        e: {
-          r: Math.max(headerRowNumber - 1, dataStartRowNumber + dataRows.length - 2),
-          c: lastColumn,
-        },
-      }),
+
+    metadataRows.forEach((row) => worksheet.addRow(row));
+    worksheet.addRow(sectionHeaders);
+
+    worksheet.mergeCells(1, 1, 1, totalColumns);
+    const titleCell = worksheet.getCell(1, 1);
+    titleCell.font = { bold: true, size: 16, color: { argb: "FFFFFFFF" } };
+    titleCell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF2699E3" },
     };
-    worksheet["!freeze"] = {
-      xSplit: 0,
-      ySplit: headerRowNumber,
-      topLeftCell: `A${dataStartRowNumber}`,
-      activePane: "bottomLeft",
-      state: "frozen",
+    titleCell.alignment = { vertical: "middle" };
+    worksheet.getRow(1).height = 28;
+
+    const labelFill = {
+      type: "pattern" as const,
+      pattern: "solid" as const,
+      fgColor: { argb: "FFEAF6FD" },
     };
-    worksheet["!merges"] = [
-      {
-        s: { r: 0, c: 0 },
-        e: { r: 0, c: lastColumn },
+    for (let rowNumber = 2; rowNumber <= 4; rowNumber += 1) {
+      const labelCell = worksheet.getCell(rowNumber, 1);
+      labelCell.font = { bold: true, color: { argb: "FF1F2937" } };
+      labelCell.fill = labelFill;
+      worksheet.getCell(rowNumber, 2).alignment = { wrapText: true };
+    }
+    worksheet.getCell(3, 2).numFmt = "yyyy-mm-dd hh:mm";
+
+    const sectionRow = worksheet.getRow(metadataRows.length + 1);
+    sectionRow.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: "FF1F2937" } };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFDFF2FD" },
+      };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+      cell.border = this.getTableCellBorder();
+    });
+    this.buildSectionMerges(sectionHeaders, metadataRows.length).forEach(
+      (range) => {
+        worksheet.mergeCells(
+          range.s.r + 1,
+          range.s.c + 1,
+          range.e.r + 1,
+          range.e.c + 1,
+        );
       },
-      ...this.buildSectionMerges(sectionHeaders, metadataRows.length),
-    ];
+    );
 
-    this.applyCellFormats(worksheet, headerRowNumber, dataRows.length);
-
-    const questionsSheet = this.buildQuestionsSheet(questions);
-
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Responses");
-    XLSX.utils.book_append_sheet(workbook, questionsSheet, "Questions");
-    workbook.Props = {
-      Title: `${formTitle} responses`,
-      Subject: "ECX Forms response export",
-      Author: "ECX Forms",
-      CreatedDate: exportedAt,
-    };
-
-    const buffer = XLSX.write(workbook, {
-      type: "buffer",
-      bookType: "xlsx",
-      cellDates: true,
+    worksheet.addTable({
+      name: "ResponsesTable",
+      ref: `A${headerRowNumber}`,
+      headerRow: true,
+      totalsRow: false,
+      style: {
+        theme: "TableStyleMedium2",
+        showRowStripes: true,
+      },
+      columns: headers.map((header) => ({
+        name: header,
+        filterButton: true,
+      })),
+      rows: dataRows,
     });
+
+    this.applyExcelWorksheetFormatting(
+      worksheet,
+      headers,
+      sectionHeaders,
+      dataRows,
+      headerRowNumber,
+    );
+    this.addQuestionsWorksheet(workbook, questions);
+
+    const excelBuffer = await workbook.xlsx.writeBuffer();
+    const buffer = Buffer.isBuffer(excelBuffer)
+      ? excelBuffer
+      : Buffer.from(excelBuffer);
     const safeTitle = this.toSafeFilename(formTitle);
 
     return {
       data: buffer,
-      filename: `${formId}_${safeTitle}_responses.xlsx`,
+      filename: `${safeTitle}.xlsx`,
       contentType:
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     };
@@ -816,8 +848,8 @@ export class ExportSubmissionsUseCase {
   private buildSectionMerges(
     sectionHeaders: string[],
     sectionRowIndex: number,
-  ): XLSX.Range[] {
-    const merges: XLSX.Range[] = [];
+  ): SheetRange[] {
+    const merges: SheetRange[] = [];
     let startColumn = 2;
 
     while (startColumn < sectionHeaders.length) {
@@ -844,67 +876,122 @@ export class ExportSubmissionsUseCase {
     return merges;
   }
 
-  private applyCellFormats(
-    worksheet: XLSX.WorkSheet,
+  private applyExcelWorksheetFormatting(
+    worksheet: ExcelJS.Worksheet,
+    headers: string[],
+    sectionHeaders: string[],
+    dataRows: unknown[][],
     headerRowNumber: number,
-    dataRowCount: number,
   ): void {
-    const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1:A1");
+    const border = this.getTableCellBorder();
 
-    for (let row = range.s.r; row <= range.e.r; row += 1) {
-      for (let col = range.s.c; col <= range.e.c; col += 1) {
-        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-        const cell = worksheet[cellAddress];
-        if (!cell) continue;
+    worksheet.columns = headers.map((header, index) => {
+      const values = [
+        header,
+        sectionHeaders[index],
+        ...dataRows.map((row) => String(row[index] || "")),
+      ];
+      const maxLength = Math.max(...values.map((value) => value.length));
+      const width =
+        index === 0 ? 22 : index === 1 ? 24 : Math.min(maxLength + 4, 46);
+      return { width: Math.max(width, 14) };
+    });
 
-        cell.s = {
-          alignment: {
-            vertical: "top",
-            wrapText: row >= headerRowNumber - 2,
-          },
-          font: row === 0 || row === headerRowNumber - 1 ? { bold: true } : {},
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell((cell) => {
+        cell.alignment = {
+          vertical: "top",
+          wrapText: rowNumber >= headerRowNumber,
         };
-      }
-    }
+        cell.border = border;
+      });
+    });
 
-    worksheet["B3"] = {
-      ...worksheet["B3"],
-      t: "d",
-      z: "yyyy-mm-dd hh:mm",
-    };
+    const headerRow = worksheet.getRow(headerRowNumber);
+    headerRow.height = 24;
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF2699E3" },
+      };
+      cell.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+        wrapText: true,
+      };
+    });
 
-    for (let row = headerRowNumber; row < headerRowNumber + dataRowCount; row += 1) {
-      const submittedAtCell = worksheet[`B${row + 1}`];
-      if (submittedAtCell) {
-        submittedAtCell.t = "d";
-        submittedAtCell.z = "yyyy-mm-dd hh:mm";
-      }
+    for (
+      let rowNumber = headerRowNumber + 1;
+      rowNumber <= headerRowNumber + dataRows.length;
+      rowNumber += 1
+    ) {
+      const row = worksheet.getRow(rowNumber);
+      row.getCell(2).numFmt = "yyyy-mm-dd hh:mm";
+      row.eachCell((cell) => {
+        cell.alignment = { vertical: "top", wrapText: true };
+        cell.border = border;
+      });
     }
   }
 
-  private buildQuestionsSheet(questions: ExportQuestion[]): XLSX.WorkSheet {
-    const worksheet = XLSX.utils.json_to_sheet(
-      questions.map((question, index) => ({
-        Order: index + 1,
-        Section: question.sectionTitle || "Form questions",
-        Question: question.title,
-        Type: question.type,
-        Required: question.required ? "Yes" : "No",
-      })),
-    );
+  private addQuestionsWorksheet(
+    workbook: ExcelJS.Workbook,
+    questions: ExportQuestion[],
+  ): void {
+    const worksheet = workbook.addWorksheet("Questions", {
+      views: [{ state: "frozen", ySplit: 1 }],
+    });
+    const rows = questions.map((question, index) => [
+      index + 1,
+      question.sectionTitle || "Form questions",
+      question.title,
+      question.type,
+      question.required ? "Yes" : "No",
+    ]);
 
-    worksheet["!cols"] = [
-      { wch: 8 },
-      { wch: 28 },
-      { wch: 42 },
-      { wch: 18 },
-      { wch: 12 },
+    worksheet.addTable({
+      name: "QuestionsTable",
+      ref: "A1",
+      headerRow: true,
+      totalsRow: false,
+      style: {
+        theme: "TableStyleMedium2",
+        showRowStripes: true,
+      },
+      columns: ["Order", "Section", "Question", "Type", "Required"].map(
+        (name) => ({
+          name,
+          filterButton: true,
+        }),
+      ),
+      rows,
+    });
+
+    worksheet.columns = [
+      { width: 10 },
+      { width: 30 },
+      { width: 48 },
+      { width: 20 },
+      { width: 14 },
     ];
-    worksheet["!autofilter"] = {
-      ref: worksheet["!ref"] || "A1:E1",
-    };
+    worksheet.eachRow((row) => {
+      row.eachCell((cell) => {
+        cell.alignment = { vertical: "top", wrapText: true };
+        cell.border = this.getTableCellBorder();
+      });
+    });
+  }
 
-    return worksheet;
+  private getTableCellBorder(): Partial<ExcelJS.Borders> {
+    return {
+      top: { style: "thin", color: { argb: "FFD8E4EA" } },
+      left: { style: "thin", color: { argb: "FFD8E4EA" } },
+      bottom: { style: "thin", color: { argb: "FFD8E4EA" } },
+      right: { style: "thin", color: { argb: "FFD8E4EA" } },
+    };
   }
 
   private toSafeFilename(value: string): string {

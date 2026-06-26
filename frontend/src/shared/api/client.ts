@@ -17,6 +17,11 @@ export interface ApiError {
   status: number;
 }
 
+export interface DownloadResponse {
+  blob: Blob;
+  filename?: string;
+}
+
 // Get token from localStorage (zustand persist)
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -114,7 +119,7 @@ class ApiClient {
   }
 
   // For downloading files (Excel/JSON export)
-  async download(url: string, config?: AxiosRequestConfig): Promise<Blob> {
+  async download(url: string, config?: AxiosRequestConfig): Promise<DownloadResponse> {
     const token = getAuthToken();
     const response = await this.client.get(url, {
       ...config,
@@ -124,7 +129,22 @@ class ApiClient {
         Authorization: token ? `Bearer ${token}` : undefined,
       },
     });
-    return response.data;
+    return {
+      blob: response.data,
+      filename: this.getDownloadFilename(response.headers['content-disposition']),
+    };
+  }
+
+  private getDownloadFilename(contentDisposition?: string): string | undefined {
+    if (!contentDisposition) return undefined;
+
+    const utf8Filename = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (utf8Filename?.[1]) {
+      return decodeURIComponent(utf8Filename[1].replace(/"/g, ''));
+    }
+
+    const filename = contentDisposition.match(/filename="?([^";]+)"?/i);
+    return filename?.[1];
   }
 }
 

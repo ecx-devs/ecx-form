@@ -1,6 +1,7 @@
 import {
   apiClient,
   formEndpoints,
+  DownloadResponse,
   publicEndpoints,
   uploadEndpoints,
 } from "@/shared/api";
@@ -41,7 +42,7 @@ export const submissionApi = {
   async export(
     formId: string,
     format: "xlsx" | "json" = "xlsx",
-  ): Promise<Blob> {
+  ): Promise<DownloadResponse> {
     return apiClient.download(formEndpoints.export(formId, format));
   },
 

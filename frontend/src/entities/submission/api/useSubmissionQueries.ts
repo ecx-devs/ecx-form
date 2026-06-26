@@ -12,6 +12,15 @@ export const submissionKeys = {
   list: (formId: string) => [...submissionKeys.all, "list", formId] as const,
 };
 
+function toSafeFilename(value: string): string {
+  const safeValue = value
+    .trim()
+    .replace(/[^a-zA-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  return safeValue || "responses";
+}
+
 // Get submissions for a form
 export function useSubmissions(formId: string | undefined) {
   return useQuery({
@@ -52,12 +61,18 @@ export function useExportSubmissions() {
       formId: string;
       format: "xlsx" | "json";
     }) => submissionApi.export(formId, format),
-    onSuccess: (blob, { format }) => {
+    onSuccess: ({ blob, filename }, { formId, format }) => {
+      const currentForm = useFormStore.getState().currentForm;
+      const fallbackTitle =
+        currentForm?.id === formId ? currentForm.title : "responses";
+      const downloadFilename =
+        filename || `${toSafeFilename(fallbackTitle)}.${format}`;
+
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `responses.${format}`;
+      a.download = downloadFilename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
